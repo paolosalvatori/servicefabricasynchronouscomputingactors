@@ -58,6 +58,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                         if (string.IsNullOrWhiteSpace(message.MessageId) ||
                             string.IsNullOrWhiteSpace(message.Body))
                         {
+                            ActorEventSource.Current.Message("Message Invalid.");
                             continue;
                         }
 
@@ -137,8 +138,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                             }
                             // NOTE: If message processing has been cancelled, 
                             // the method returns immediately without any result
-                            ActorEventSource.Current.Message(
-                                $"MessageId=[{message.MessageId}] elaboration has been canceled and sequential message processing stopped.");
+                            ActorEventSource.Current.Message($"MessageId=[{message.MessageId}] elaboration has been canceled and sequential message processing stopped.");
                             return;
                         }
                         ActorEventSource.Current.Message($"MessageId=[{message.MessageId}] has been successfully processed.");
@@ -155,8 +155,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                                 await workerActorProxy.ReturnSequentialProcessingAsync(message.MessageId, returnValue);
 
                                 //Logs event
-                                ActorEventSource.Current.Message(
-                                    $"Sequential processing of MessageId=[{message.MessageId}] ReturnValue=[{returnValue}] successfully returned.");
+                                ActorEventSource.Current.Message($"Sequential processing of MessageId=[{message.MessageId}] ReturnValue=[{returnValue}] successfully returned.");
                                 break;
                             }
                             catch (FabricTransientException ex)
