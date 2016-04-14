@@ -99,7 +99,7 @@ namespace Microsoft.AzureCat.Samples.Framework
                 }
                 await this.StateManager.TryRemoveStateAsync(key);
                 await this.StateManager.SetStateAsync(HeaderIndexState, header);
-                ActorEventSource.Current.Message($"Message successfully dequeued. Header=[{header}] Tail=[{tail}]");
+                ActorEventSource.Current.Message($"Message successfully dequeued. Head=[{header}] Tail=[{tail}]");
                 return result.Value;
             }
             catch (Exception ex)
@@ -159,7 +159,7 @@ namespace Microsoft.AzureCat.Samples.Framework
                 long current = header == long.MaxValue ? 0 : header + 1;
                 string key = current.ToString();
                 ConditionalValue<Message> result = await this.StateManager.TryGetStateAsync<Message>(key);
-                ActorEventSource.Current.Message($"Message successfully peeked. Header=[{header}] Tail=[{tail}]");
+                ActorEventSource.Current.Message($"Message successfully peeked. Head=[{header}] Tail=[{tail}]");
                 return !result.HasValue ? null : result.Value;
             }
             catch (Exception ex)
