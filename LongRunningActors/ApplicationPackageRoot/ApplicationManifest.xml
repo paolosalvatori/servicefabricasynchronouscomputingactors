@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="LongRunningActorsType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+   <Parameters>
+      <Parameter Name="QueueActorService_PartitionCount" DefaultValue="5" />
+      <Parameter Name="QueueActorService_MinReplicaSetSize" DefaultValue="1" />
+      <Parameter Name="QueueActorService_TargetReplicaSetSize" DefaultValue="1" />
+      <Parameter Name="ProcessorActorService_PartitionCount" DefaultValue="5" />
+      <Parameter Name="ProcessorActorService_MinReplicaSetSize" DefaultValue="1" />
+      <Parameter Name="ProcessorActorService_TargetReplicaSetSize" DefaultValue="1" />
+      <Parameter Name="WorkerActorService_PartitionCount" DefaultValue="5" />
+      <Parameter Name="WorkerActorService_MinReplicaSetSize" DefaultValue="1" />
+      <Parameter Name="WorkerActorService_TargetReplicaSetSize" DefaultValue="1" />
+      <Parameter Name="WorkerActorService_QueueLength" DefaultValue="10" />
+      <Parameter Name="GatewayService_InstanceCount" DefaultValue="-1" />
+      <Parameter Name="GatewayService_ServiceRelativePath" DefaultValue="worker" />
+      <Parameter Name="GatewayService_MaxRetryCount" DefaultValue="3" />
+      <Parameter Name="GatewayService_BackoffDelay" DefaultValue="1" />
+   </Parameters>
+   <ServiceManifestImport>
+      <ServiceManifestRef ServiceManifestName="WorkerActorServicePkg" ServiceManifestVersion="1.0.0" />
+      <ConfigOverrides>
+         <ConfigOverride Name="Config">
+            <Settings>
+               <Section Name="WorkerActorCustomConfig">
+                  <Parameter Name="QueueLength" Value="[WorkerActorService_QueueLength]" />
+               </Section>
+            </Settings>
+         </ConfigOverride>
+      </ConfigOverrides>
+   </ServiceManifestImport>
+   <ServiceManifestImport>
+      <ServiceManifestRef ServiceManifestName="GatewayServicePkg" ServiceManifestVersion="1.0.0" />
+      <ConfigOverrides>
+         <ConfigOverride Name="Config">
+            <Settings>
+               <Section Name="GatewayServiceConfig">
+                  <Parameter Name="ServiceRelativePath" Value="[GatewayService_ServiceRelativePath]" />
+                  <Parameter Name="MaxRetryCount" Value="[GatewayService_MaxRetryCount]" />
+                  <Parameter Name="BackoffDelay" Value="[GatewayService_BackoffDelay]" />
+               </Section>
+            </Settings>
+         </ConfigOverride>
+      </ConfigOverrides>
+   </ServiceManifestImport>
+   <DefaultServices>
+      <Service Name="QueueActorService" GeneratedIdRef="37358473-0369-43e1-b284-c7d5f7eac3f9|Persisted">
+         <StatefulService ServiceTypeName="QueueActorServiceType" TargetReplicaSetSize="[QueueActorService_TargetReplicaSetSize]" MinReplicaSetSize="[QueueActorService_MinReplicaSetSize]">
+            <UniformInt64Partition PartitionCount="[QueueActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+         </StatefulService>
+      </Service>
+      <Service Name="ProcessorActorService" GeneratedIdRef="3d19262d-0c9a-4ad7-9093-d51b5784f0ec|Persisted">
+         <StatefulService ServiceTypeName="ProcessorActorServiceType" TargetReplicaSetSize="[ProcessorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[ProcessorActorService_MinReplicaSetSize]">
+            <UniformInt64Partition PartitionCount="[ProcessorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+         </StatefulService>
+      </Service>
+      <Service Name="WorkerActorService" GeneratedIdRef="dfc824d9-5788-4c44-85a1-d9f47f7b6b37|Persisted">
+         <StatefulService ServiceTypeName="WorkerActorServiceType" TargetReplicaSetSize="[WorkerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[WorkerActorService_MinReplicaSetSize]">
+            <UniformInt64Partition PartitionCount="[WorkerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+         </StatefulService>
+      </Service>
+      <Service Name="GatewayService">
+         <StatelessService ServiceTypeName="GatewayServiceType" InstanceCount="[GatewayService_InstanceCount]">
+            <SingletonPartition />
+         </StatelessService>
+      </Service>
+   </DefaultServices>
+</ApplicationManifest>
