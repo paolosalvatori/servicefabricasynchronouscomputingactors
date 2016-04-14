@@ -40,7 +40,7 @@ For more information on the turn-based model for accessing actor methods, see th
 The following picture shows the architecture design of the application.
 <br/>
 <br/>
-![Architecture](https://github.com/Azure-Samples/service-fabric-dotnet-asynchronous-computing-actors/blob/master/Images/Architecture.png?raw=true)
+![Architecture](https://raw.githubusercontent.com/paolosalvatori/servicefabricasynchronouscomputingactors/master/Images/Architecture.png)
 <br/>
 
 # Message Flow #
@@ -166,18 +166,18 @@ The following table contains the actor interface implemented by the **WorkerActo
 # Parallel Processing #
 The following diagram shows the sequence diagram for the parallel message processing pattern.
 
-![Parallel Processing](https://github.com/Azure-Samples/service-fabric-dotnet-asynchronous-computing-actors/blob/master/Images/Parallel.png?raw=true)
+![Parallel Processing](https://raw.githubusercontent.com/paolosalvatori/servicefabricasynchronouscomputingactors/master/Images/Parallel.png)
 
 # Sequential Processing #
 The following diagram shows the sequence diagram for the sequential message processing pattern.
 
-![SequentialProcessing](https://github.com/Azure-Samples/service-fabric-dotnet-asynchronous-computing-actors/blob/master/Images/Sequential.png?raw=true)
+![SequentialProcessing](https://raw.githubusercontent.com/paolosalvatori/servicefabricasynchronouscomputingactors/master/Images/Sequential.png)
 
 
 # Client Application #
 The image belowshows the options offered by the client application to test the parallel and seuqntial message processing patterns directly via an **ActorProxy** object or via the **GatewayService**.
 <br/><br/>
-![ClientApplication](https://github.com/Azure-Samples/service-fabric-dotnet-asynchronous-computing-actors/blob/master/Images/Client.png?raw=true)
+![ClientApplication](https://raw.githubusercontent.com/paolosalvatori/servicefabricasynchronouscomputingactors/master/Images/Client.png)
 
 
 The following table contains the settings defined in the configuration file of the client application:
