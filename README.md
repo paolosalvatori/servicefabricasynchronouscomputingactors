@@ -291,7 +291,8 @@ The following table contains the settings defined in the configuration file of t
 					<ConfigOverride Name="Config">
 						<Settings>
 							<Section Name="GatewayServiceConfig">
-								<Parameter Name="ServiceRelativePath" Value="[GatewayService_ServiceRelativePath]" />
+								<Parameter Name="ServiceRelativePath" 
+										   Value="[GatewayService_ServiceRelativePath]" />
 								<Parameter Name="MaxRetryCount" Value="[GatewayService_MaxRetryCount]" />
 								<Parameter Name="BackoffDelay" Value="[GatewayService_BackoffDelay]" />
 							</Section>
