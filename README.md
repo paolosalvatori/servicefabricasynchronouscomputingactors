@@ -81,7 +81,7 @@ The Service Fabric application is composed of three services:
 # The Worker Actor #
 The following table contains the actor interface implemented by the **WorkerActor** class.
 
-
+```csharp
 	namespace Microsoft.AzureCat.Samples.WorkerActorService.Interfaces
     {
 	    /// <summary>
@@ -162,7 +162,7 @@ The following table contains the actor interface implemented by the **WorkerActo
 	    Task<Statistics> GetProcessingStatisticsAsync();
 	    }
 	}
-
+```
 # Parallel Processing #
 The following diagram shows the sequence diagram for the parallel message processing pattern.
 
@@ -181,7 +181,7 @@ The image belowshows the options offered by the client application to test the p
 
 
 The following table contains the settings defined in the configuration file of the client application:
-
+```xml
     <?xml version="1.0" encoding="utf-8"?>
     <configuration>
 		<startup> 
@@ -202,12 +202,13 @@ The following table contains the settings defined in the configuration file of t
 		    <add key="delay" value="1"/>
 		</appSettings>
     </configuration>
-    
+```
 
 ## Service Fabric Configuration Files ##
 
 **ApplicationParameters\Local.xml** file in the **LongRunningActors** project:
 
+```xml
 	<?xml version="1.0" encoding="utf-8"?>
     <Application xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
 	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -224,9 +225,11 @@ The following table contains the settings defined in the configuration file of t
 			<Parameter Name="ProcessorActorService_PartitionCount" Value="1" />
 		</Parameters>
     </Application>
+```
 
 **ApplicationParameters\Cloud.xml** file in the **LongRunningActors** project:
 
+```xml
     <?xml version="1.0" encoding="utf-8"?>
     <Application xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
 	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -243,9 +246,11 @@ The following table contains the settings defined in the configuration file of t
 			<Parameter Name="ProcessorActorService_PartitionCount" Value="1" />
 		</Parameters>
     </Application>
+```
 
 **ApplicationManifest.xml** file in the **LongRunningActors** project:
 
+```xml
     <?xml version="1.0" encoding="utf-8"?>
     <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
 	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -329,3 +334,4 @@ The following table contains the settings defined in the configuration file of t
 			</Service>
 		</DefaultServices>
     </ApplicationManifest>
+```
