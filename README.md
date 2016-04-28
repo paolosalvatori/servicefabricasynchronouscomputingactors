@@ -151,7 +151,7 @@ The following table contains the actor interface implemented by the **WorkerActo
 	    /// <summary>
 	    /// Sets sequential processing state.
 	    /// </summary>
-	    /// <param name="runningState">True if the sequential processing task is still running, false otherwise.</param>
+	    /// <param name="runningState">True if the processing task is still running, false otherwise.</param>
 	    /// <returns>True if the operation completes successfully, false otherwise.</returns>
 	    Task<bool> SetSequentialProcessingStateAsync(bool runningState);
 	    
@@ -328,7 +328,8 @@ The following table contains the settings defined in the configuration file of t
 				</StatefulService>
 			</Service>
 			<Service Name="GatewayService">
-				<StatelessService ServiceTypeName="GatewayServiceType" InstanceCount="[GatewayService_InstanceCount]">
+				<StatelessService ServiceTypeName="GatewayServiceType" 
+                                  InstanceCount="[GatewayService_InstanceCount]">
 					<SingletonPartition />
 				</StatelessService>
 			</Service>
