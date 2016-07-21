@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Application xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="fabric:/LongRunningActors" xmlns="http://schemas.microsoft.com/2011/01/fabric">
-   <Parameters>
-      <Parameter Name="GatewayService_InstanceCount" Value="1" />
-      <Parameter Name="GatewayService_ServiceRelativePath" Value="worker" />
-      <Parameter Name="GatewayService_MaxRetryCount" Value="3" />
-      <Parameter Name="GatewayService_BackoffDelay" Value="1" />
-      <Parameter Name="WorkerActorService_PartitionCount" Value="1" />
-      <Parameter Name="WorkerActorService_QueueLength" Value="5" />
-      <Parameter Name="QueueActorService_PartitionCount" Value="1" />
-      <Parameter Name="ProcessorActorService_PartitionCount" Value="1" />
-   </Parameters>
+  <Parameters>
+    <Parameter Name="GatewayService_InstanceCount" Value="1" />
+    <Parameter Name="GatewayService_ServiceRelativePath" Value="worker" />
+    <Parameter Name="GatewayService_MaxRetryCount" Value="3" />
+    <Parameter Name="GatewayService_BackoffDelay" Value="1" />
+    <Parameter Name="WorkerActorService_PartitionCount" Value="1" />
+    <Parameter Name="WorkerActorService_QueueLength" Value="5" />
+    <Parameter Name="QueueActorService_PartitionCount" Value="1" />
+    <Parameter Name="ProcessorActorService_PartitionCount" Value="1" />
+  </Parameters>
 </Application>

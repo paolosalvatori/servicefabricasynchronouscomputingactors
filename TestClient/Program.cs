@@ -42,7 +42,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
             try
             {
                 // Sets window size and cursor color
-                Console.SetWindowSize(130, 50);
+                Console.SetWindowSize(130, 30);
                 Console.ForegroundColor = ConsoleColor.White;
 
                 // Reads configuration settings

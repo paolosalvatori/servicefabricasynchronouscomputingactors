@@ -38,21 +38,28 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
 
         public async Task ReceiveReminderAsync(string reminderName, byte[] context, TimeSpan dueTime, TimeSpan period)
         {
-            // Retieves the cancellation token source from the actor state
-            ConditionalValue<CancellationTokenSource> result = await this.StateManager.TryGetStateAsync<CancellationTokenSource>(ProcessingState);
-            if (result.HasValue)
+            try
             {
-                CancellationTokenSource cancellationTokenSource = result.Value;
-                // Creates the proxy to call the processor actor
-                IProcessorActor processorActorProxy = ActorProxy.Create<IProcessorActor>(new ActorId(this.Id.ToString()), this.processorActorServiceUri);
-
-                // Tries to start the processor. If the processor is already running, the task will timeout after 1 second.
-                List<Task> taskList = new List<Task>
+                // Retieves the cancellation token source from the actor state
+                ConditionalValue<CancellationTokenSource> result = await this.StateManager.TryGetStateAsync<CancellationTokenSource>(ProcessingState);
+                if (result.HasValue)
                 {
-                    processorActorProxy.ProcessMessagesAsync(cancellationTokenSource.Token),
-                    Task.Delay(TimeSpan.FromSeconds(3), cancellationTokenSource.Token)
-                };
-                await Task.WhenAny(taskList);
+                    CancellationTokenSource cancellationTokenSource = result.Value;
+                    // Creates the proxy to call the processor actor
+                    IProcessorActor processorActorProxy = ActorProxy.Create<IProcessorActor>(new ActorId(this.Id.ToString()), this.processorActorServiceUri);
+
+                    // Tries to start the processor. If the processor is already running, the task will timeout after 1 second.
+                    List<Task> taskList = new List<Task>
+                    {
+                        processorActorProxy.ProcessSequentialMessagesAsync(cancellationTokenSource.Token),
+                        Task.Delay(TimeSpan.FromSeconds(3), cancellationTokenSource.Token)
+                    };
+                    await Task.WhenAny(taskList);
+                }
+            }
+            catch (Exception ex)
+            {
+                ActorEventSource.Current.Error(ex);
             }
         }
 
@@ -182,7 +189,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 //Sets a reminder to return immediately from the call and rememeber to start the processor actor.
                 await this.RegisterReminderAsync(
                     Guid.NewGuid().ToString(),
-                    null,
+                    null, 
                     TimeSpan.FromMilliseconds(10),
                     TimeSpan.FromMilliseconds(-1));
                 return true;
@@ -228,17 +235,17 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 // Adds the CancellationTokenSource to the actor state using the messageId as name
                 await this.StateManager.TryAddStateAsync(message.MessageId, cancellationTokenSource, cancellationTokenSource.Token);
 
-                // Starts the message processing
-#pragma warning disable 4014
-                this.ProcessMessageAsync(this.Id.ToString(), message, cancellationTokenSource.Token);
-#pragma warning restore 4014
-
                 // Updates internal statistics
                 ConditionalValue<long> longResult = await this.StateManager.TryGetStateAsync<long>(ReceivedState, cancellationTokenSource.Token);
                 if (longResult.HasValue)
                 {
                     await this.StateManager.SetStateAsync(ReceivedState, longResult.Value + 1, cancellationTokenSource.Token);
                 }
+
+                var actorProxy = ActorProxy.Create<IProcessorActor>(new ActorId(message.MessageId), this.processorActorServiceUri);
+
+                // Starts the message processing
+                await actorProxy.ProcessParallelMessagesAsync(this.Id.ToString(), message, cancellationTokenSource.Token);
 
                 // Logs event
                 ActorEventSource.Current.Message($"Parallel processing of MessageId=[{message.MessageId}] successfully started.");
@@ -522,6 +529,12 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
 
                         // Saves the result queue
                         await this.StateManager.SetStateAsync(ResultQueueState, queue);
+
+                        // Delete the processor actor
+                        ActorId actorId = new ActorId(messageId);
+                        IActorService actorServiceProxy = ActorServiceProxy.Create(processorActorServiceUri, actorId);
+                        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+                        await actorServiceProxy.DeleteActorAsync(actorId, cancellationTokenSource.Token);
                     }
                     else
                     {
@@ -723,150 +736,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
 
         #endregion
 
-        #region Protected Virtual Methods
-
-        /// <summary>
-        /// Process a messages.
-        /// </summary>
-        /// <param name="workerId">The worker id.</param>
-        /// <param name="message">The message to process</param>
-        /// <param name="cancellationToken">The cancellation token to interrupt message processing.</param>
-        /// <returns>The object at the beginning of the circular queue.</returns>
-        protected virtual async void ProcessMessageAsync(string workerId, Message message, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // Message validation
-                if (string.IsNullOrWhiteSpace(message.MessageId) ||
-                    string.IsNullOrWhiteSpace(message.Body))
-                {
-                    return;
-                }
-
-                // Create delay variable and assign 1 second as default value
-                TimeSpan delay = TimeSpan.FromSeconds(1);
-
-                // Create steps variable and assign 10 as default value
-                int steps = 10;
-
-                if (message.Properties != null)
-                {
-                    // Checks if the message Properties collection contains the delay property
-                    if (message.Properties.ContainsKey(DelayProperty))
-                    {
-                        if (message.Properties[DelayProperty] is TimeSpan)
-                        {
-                            // Assigns the property value to the delay variable
-                            delay = (TimeSpan) message.Properties[DelayProperty];
-                        }
-                        else
-                        {
-                            string value = message.Properties[DelayProperty] as string;
-                            if (value != null)
-                            {
-                                TimeSpan temp;
-                                if (TimeSpan.TryParse(value, out temp))
-                                {
-                                    delay = temp;
-                                }
-                            }
-                        }
-                    }
-
-                    // Checks if the message Properties collection contains the steps property
-                    if (message.Properties.ContainsKey(StepsProperty))
-                    {
-                        if (message.Properties[StepsProperty] is int)
-                        {
-                            // Assigns the property value to the steps variable
-                            steps = (int) message.Properties[StepsProperty];
-                        }
-                        if (message.Properties[StepsProperty] is long)
-                        {
-                            // Assigns the property value to the steps variable
-                            steps = (int) (long) message.Properties[StepsProperty];
-                        }
-                        else
-                        {
-                            string value = message.Properties[StepsProperty] as string;
-                            if (value != null)
-                            {
-                                int temp;
-                                if (int.TryParse(value, out temp))
-                                {
-                                    steps = temp;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // NOTE!!!! This section should be replaced by some real computation
-                for (int i = 0; i < steps; i++)
-                {
-                    ActorEventSource.Current.Message($"MessageId=[{message.MessageId}] Body=[{message.Body}] ProcessStep=[{i + 1}]");
-                    try
-                    {
-                        await Task.Delay(delay, cancellationToken);
-                    }
-                    catch (TaskCanceledException)
-                    {
-                    }
-
-                    if (!cancellationToken.IsCancellationRequested)
-                    {
-                        continue;
-                    }
-                    // NOTE: If message processing has been cancelled, 
-                    // the method returns immediately without any result
-                    ActorEventSource.Current.Message($"MessageId=[{message.MessageId}] elaboration has been canceled and parallel message processing stopped.");
-                    return;
-                }
-                ActorEventSource.Current.Message($"MessageId=[{message.MessageId}] has been successfully processed.");
-
-                IWorkerActor workerActorProxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), this.ServiceUri);
-
-                for (int n = 1; n <= 10; n++)
-                {
-                    try
-                    {
-                        // Simulates a return value between 1 and 100
-                        Random random = new Random();
-                        int returnValue = random.Next(1, 101);
-
-                        // Stops the current processing task: it removes the corresponding state from the worker actor
-                        bool ok = await workerActorProxy.ReturnParallelProcessingAsync(message.MessageId, returnValue);
-                        if (ok)
-                        {
-                            ActorEventSource.Current.Message($"Parallel processing of MessageId=[{message.MessageId}] successfully stopped.");
-                        }
-                        return;
-                    }
-                    catch (FabricTransientException ex)
-                    {
-                        ActorEventSource.Current.Message(ex.Message);
-                    }
-                    catch (AggregateException ex)
-                    {
-                        foreach (Exception e in ex.InnerExceptions)
-                        {
-                            ActorEventSource.Current.Message(e.Message);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        ActorEventSource.Current.Message(ex.Message);
-                        throw;
-                    }
-                    Task.Delay(TimeSpan.FromSeconds(1), cancellationToken).Wait(cancellationToken);
-                }
-                throw new TimeoutException();
-            }
-            catch (Exception ex)
-            {
-                ActorEventSource.Current.Error(ex);
-            }
-        }
+        #region Private Methods
 
         private void ReadSettings()
         {
