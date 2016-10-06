@@ -383,7 +383,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                 {
                     return null;
                 }
-                foreach (Exception exception in ex.InnerExceptions)
+                foreach (var exception in ex.InnerExceptions)
                 {
                     ServiceEventSource.Current.Message(exception.Message);
                 }

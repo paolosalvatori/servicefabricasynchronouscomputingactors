@@ -2,14 +2,14 @@
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="LongRunningActorsType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
     <Parameter Name="QueueActorService_PartitionCount" DefaultValue="5" />
-    <Parameter Name="QueueActorService_MinReplicaSetSize" DefaultValue="1" />
-    <Parameter Name="QueueActorService_TargetReplicaSetSize" DefaultValue="1" />
+    <Parameter Name="QueueActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="QueueActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="ProcessorActorService_PartitionCount" DefaultValue="5" />
-    <Parameter Name="ProcessorActorService_MinReplicaSetSize" DefaultValue="1" />
-    <Parameter Name="ProcessorActorService_TargetReplicaSetSize" DefaultValue="1" />
+    <Parameter Name="ProcessorActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="ProcessorActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="WorkerActorService_PartitionCount" DefaultValue="5" />
-    <Parameter Name="WorkerActorService_MinReplicaSetSize" DefaultValue="1" />
-    <Parameter Name="WorkerActorService_TargetReplicaSetSize" DefaultValue="1" />
+    <Parameter Name="WorkerActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="WorkerActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="WorkerActorService_QueueLength" DefaultValue="10" />
     <Parameter Name="GatewayService_InstanceCount" DefaultValue="-1" />
     <Parameter Name="GatewayService_ServiceRelativePath" DefaultValue="worker" />
@@ -46,11 +46,17 @@
     <Service Name="QueueActorService" GeneratedIdRef="37358473-0369-43e1-b284-c7d5f7eac3f9|Persisted">
       <StatefulService ServiceTypeName="QueueActorServiceType" TargetReplicaSetSize="[QueueActorService_TargetReplicaSetSize]" MinReplicaSetSize="[QueueActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[QueueActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+        <ServiceCorrelations>
+          <ServiceCorrelation ServiceName="fabric:/LongRunningActors/WorkerActorService" Scheme="Affinity" />
+        </ServiceCorrelations>
       </StatefulService>
     </Service>
     <Service Name="ProcessorActorService" GeneratedIdRef="3d19262d-0c9a-4ad7-9093-d51b5784f0ec|Persisted">
       <StatefulService ServiceTypeName="ProcessorActorServiceType" TargetReplicaSetSize="[ProcessorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[ProcessorActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[ProcessorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+        <ServiceCorrelations>
+          <ServiceCorrelation ServiceName="fabric:/LongRunningActors/WorkerActorService" Scheme="Affinity" />
+        </ServiceCorrelations>
       </StatefulService>
     </Service>
     <Service Name="WorkerActorService" GeneratedIdRef="dfc824d9-5788-4c44-85a1-d9f47f7b6b37|Persisted">

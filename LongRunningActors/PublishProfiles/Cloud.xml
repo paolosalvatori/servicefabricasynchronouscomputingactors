@@ -15,6 +15,9 @@
                                     StoreLocation="CurrentUser"
                                     StoreName="My" />
   -->
-  <ClusterConnectionParameters ConnectionEndpoint="Please specify a connection endpoint." />
+  <!--<ClusterConnectionParameters ConnectionEndpoint="Please specify a connection endpoint." />-->
+  <ClusterConnectionParameters ConnectionEndpoint="babo.westeurope.cloudapp.azure.com:19000"
+                               AzureActiveDirectory="true"
+                               ServerCertThumbprint="A516278E6B57499E7C38402942F43D986A8738D1"/>
   <ApplicationParameterFile Path="..\ApplicationParameters\Cloud.xml" />
 </PublishProfile>

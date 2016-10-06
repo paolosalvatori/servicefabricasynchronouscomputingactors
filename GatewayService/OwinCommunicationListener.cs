@@ -128,7 +128,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                 this.serverHandle = WebApp.Start(this.listeningAddress, appBuilder => this.startup.Configuration(appBuilder));
                 string publishAddress = this.listeningAddress.Replace("+", FabricRuntime.GetNodeContext().IPAddressOrFQDN);
 
-                ServiceEventSource.Current.Message($"Listening on {publishAddress}");
+                ServiceEventSource.Current.Message($"Listening on [{publishAddress}]");
 
                 return Task.FromResult(publishAddress);
             }
