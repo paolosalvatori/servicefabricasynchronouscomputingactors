@@ -49,14 +49,14 @@
         <!--<ServiceCorrelations>
           <ServiceCorrelation ServiceName="fabric:/LongRunningActors/WorkerActorService" Scheme="Affinity" />
         </ServiceCorrelations>-->
-        <!--<ServiceCorrelations>
-          <ServiceCorrelation ServiceName="fabric:/LongRunningActors/WorkerActorService" Scheme="Affinity" />
-        </ServiceCorrelations>-->
       </StatefulService>
     </Service>
     <Service Name="ProcessorActorService" GeneratedIdRef="3d19262d-0c9a-4ad7-9093-d51b5784f0ec|Persisted">
       <StatefulService ServiceTypeName="ProcessorActorServiceType" TargetReplicaSetSize="[ProcessorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[ProcessorActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[ProcessorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+        <!--<ServiceCorrelations>
+          <ServiceCorrelation ServiceName="fabric:/LongRunningActors/WorkerActorService" Scheme="Affinity" />
+        </ServiceCorrelations>-->
       </StatefulService>
     </Service>
     <Service Name="WorkerActorService" GeneratedIdRef="dfc824d9-5788-4c44-85a1-d9f47f7b6b37|Persisted">
