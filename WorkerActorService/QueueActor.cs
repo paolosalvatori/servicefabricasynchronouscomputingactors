@@ -1,4 +1,5 @@
 ﻿#region Copyright
+
 //=======================================================================================
 // Microsoft Azure Customer Advisory Team  
 //
@@ -13,6 +14,7 @@
 // EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF 
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. YOU BEAR THE RISK OF USING IT.
 //=======================================================================================
+
 #endregion
 
 #region Using Directives
@@ -27,15 +29,16 @@ using Microsoft.ServiceFabric.Actors.Runtime;
 namespace Microsoft.AzureCat.Samples.WorkerActorService
 {
     /// <remarks>
-    /// This actor can be used to start, stop and monitor long running processes.
+    ///     This actor can be used to start, stop and monitor long running processes.
     /// </remarks>
     [ActorService(Name = "QueueActorService")]
     [StatePersistence(StatePersistence.Persisted)]
     internal class QueueActor : CircularQueueActor, IQueueActor
     {
         #region Public Constructor
+
         /// <summary>
-        /// Initializes a new instance of QueueActor
+        ///     Initializes a new instance of QueueActor
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
@@ -43,6 +46,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
             : base(actorService, actorId)
         {
         }
+
         #endregion
     }
 }

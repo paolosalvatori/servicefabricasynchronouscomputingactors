@@ -1,4 +1,5 @@
 ﻿#region Copyright
+
 //=======================================================================================
 // Microsoft Azure Customer Advisory Team  
 //
@@ -13,9 +14,11 @@
 // EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF 
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. YOU BEAR THE RISK OF USING IT.
 //=======================================================================================
+
 #endregion
 
 #region Using Directives
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,25 +32,12 @@ using Microsoft.ServiceFabric.Actors.Runtime;
 
 namespace Microsoft.AzureCat.Samples.Framework
 {
-    public abstract class CircularQueueActor: Actor, ICircularQueueActor
+    public abstract class CircularQueueActor : Actor, ICircularQueueActor
     {
-        #region Private Constants
-        private const string TailIndexState = "tail";
-        private const string HeaderIndexState = "header";
-        #endregion
-
-        #region Actor Overridden Methods
-        protected async override Task OnActivateAsync()
-        {
-            // First Activation
-            await StateManager.TryAddStateAsync(HeaderIndexState, (long)-1);
-            await StateManager.TryAddStateAsync(TailIndexState, (long)-1);
-        }
-        #endregion
-
         #region Public Constructor
+
         /// <summary>
-        /// Initializes a new instance of CircularQueueActor
+        ///     Initializes a new instance of CircularQueueActor
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
@@ -55,34 +45,50 @@ namespace Microsoft.AzureCat.Samples.Framework
             : base(actorService, actorId)
         {
         }
+
+        #endregion
+
+        #region Actor Overridden Methods
+
+        protected override async Task OnActivateAsync()
+        {
+            // First Activation
+            await StateManager.TryAddStateAsync(HeaderIndexState, (long) -1);
+            await StateManager.TryAddStateAsync(TailIndexState, (long) -1);
+        }
+
+        #endregion
+
+        #region Private Constants
+
+        private const string TailIndexState = "tail";
+        private const string HeaderIndexState = "header";
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
-        /// Adds an object to the end of the circular queue.
+        ///     Adds an object to the end of the circular queue.
         /// </summary>
         /// <param name="item">The object to add to the circular queue. The value cannot be null.</param>
         /// <returns>The asynchronous result of the operation.</returns>
-        public async virtual Task EnqueueAsync(Message item)
+        public virtual async Task EnqueueAsync(Message item)
         {
             try
             {
                 if (item == null)
-                {
                     throw new ArgumentException($"{nameof(item)} parameter cannot be null", nameof(item));
-                }
                 var result = await StateManager.TryGetStateAsync<long>(TailIndexState);
                 if (!result.HasValue)
-                {
                     return;
-                }
                 var tail = result.Value == long.MaxValue ? 0 : result.Value + 1;
                 await StateManager.SetStateAsync(TailIndexState, tail);
                 var key = tail.ToString();
                 await StateManager.TryAddStateAsync(key, item);
                 ActorEventSource.Current.Message($"Message successfully enqueued. Tail=[{tail}]");
             }
-            catch (Exception ex )
+            catch (Exception ex)
             {
                 ActorEventSource.Current.Error(ex);
                 throw;
@@ -90,29 +96,25 @@ namespace Microsoft.AzureCat.Samples.Framework
         }
 
         /// <summary>
-        /// Removes and returns the object at the beginning of the circular queue.
+        ///     Removes and returns the object at the beginning of the circular queue.
         /// </summary>
         /// <returns>The object that is removed from the beginning of the circular queue.</returns>
-        public async virtual Task<Message> DequeueAsync()
+        public virtual async Task<Message> DequeueAsync()
         {
             try
             {
                 var headerResult = await StateManager.TryGetStateAsync<long>(HeaderIndexState);
                 var tailResult = await StateManager.TryGetStateAsync<long>(TailIndexState);
-                if (!headerResult.HasValue  ||
+                if (!headerResult.HasValue ||
                     !tailResult.HasValue ||
-                    headerResult.Value == tailResult.Value)
-                {
+                    (headerResult.Value == tailResult.Value))
                     return null;
-                }
                 var tail = tailResult.Value;
                 var header = headerResult.Value == long.MaxValue ? 0 : headerResult.Value + 1;
                 var key = header.ToString();
                 var result = await StateManager.TryGetStateAsync<Message>(key);
                 if (!result.HasValue)
-                {
                     return null;
-                }
                 await StateManager.TryRemoveStateAsync(key);
                 await StateManager.SetStateAsync(HeaderIndexState, header);
                 ActorEventSource.Current.Message($"Message successfully dequeued. Header=[{header}] Tail=[{tail}]");
@@ -126,10 +128,10 @@ namespace Microsoft.AzureCat.Samples.Framework
         }
 
         /// <summary>
-        /// Removes and returns a collection collection containing all the objects in the circular queue.
+        ///     Removes and returns a collection collection containing all the objects in the circular queue.
         /// </summary>
         /// <returns>A collection containing all the objects in the queue.</returns>
-        public async virtual Task<IEnumerable<Message>> DequeueAllAsync()
+        public virtual async Task<IEnumerable<Message>> DequeueAllAsync()
         {
             try
             {
@@ -140,9 +142,7 @@ namespace Microsoft.AzureCat.Samples.Framework
                 {
                     var result = await StateManager.TryGetStateAsync<Message>(name);
                     if (result.HasValue)
-                    {
                         list.Add(result.Value);
-                    }
                     await StateManager.TryRemoveStateAsync(name);
                     i++;
                 }
@@ -159,19 +159,17 @@ namespace Microsoft.AzureCat.Samples.Framework
         }
 
         /// <summary>
-        /// Returns the object at the beginning of the circular queue without removing it.
+        ///     Returns the object at the beginning of the circular queue without removing it.
         /// </summary>
         /// <returns>The object at the beginning of the circular queue.</returns>
-        public async virtual Task<Message> PeekAsync()
+        public virtual async Task<Message> PeekAsync()
         {
             try
             {
                 var header = await StateManager.GetStateAsync<long>(HeaderIndexState);
                 var tail = await StateManager.GetStateAsync<long>(TailIndexState);
                 if (tail == header)
-                {
                     return null;
-                }
                 var current = header == long.MaxValue ? 0 : header + 1;
                 var key = current.ToString();
                 var result = await StateManager.TryGetStateAsync<Message>(key);
@@ -186,7 +184,7 @@ namespace Microsoft.AzureCat.Samples.Framework
         }
 
         /// <summary>
-        /// Gets the count of the items contained in the circular queue.
+        ///     Gets the count of the items contained in the circular queue.
         /// </summary>
         public virtual Task<long> Count
         {
@@ -207,6 +205,7 @@ namespace Microsoft.AzureCat.Samples.Framework
                 }
             }
         }
+
         #endregion
     }
 }

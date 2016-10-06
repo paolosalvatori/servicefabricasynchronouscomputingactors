@@ -1,4 +1,5 @@
 ﻿#region Copyright
+
 //=======================================================================================
 // Microsoft Azure Customer Advisory Team  
 //
@@ -13,6 +14,7 @@
 // EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF 
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. YOU BEAR THE RISK OF USING IT.
 //=======================================================================================
+
 #endregion
 
 #region Using Directives
@@ -30,7 +32,8 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         {
             var httpConfiguration = new HttpConfiguration();
             httpConfiguration.MapHttpAttributeRoutes();
-            httpConfiguration.Routes.MapHttpRoute("DefaultApi", "api/{controller}/{id}", new { id = RouteParameter.Optional });
+            httpConfiguration.Routes.MapHttpRoute("DefaultApi", "api/{controller}/{id}",
+                new {id = RouteParameter.Optional});
             httpConfiguration.Formatters.Add(new BrowserJsonFormatter());
             app.UseWebApi(httpConfiguration);
         }

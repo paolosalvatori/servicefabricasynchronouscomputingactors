@@ -1,22 +1,34 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿#region Copyright
 
-#region MyRegion
+//=======================================================================================
+// Microsoft Azure Customer Advisory Team  
+//
+// This sample is supplemental to the technical guidance published on the community
+// blog at http://blogs.msdn.com/b/paolos/. 
+// 
+// Author: Paolo Salvatori
+//=======================================================================================
+// Copyright © 2016 Microsoft Corporation. All rights reserved.
+// 
+// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER 
+// EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF 
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. YOU BEAR THE RISK OF USING IT.
+//=======================================================================================
 
+#endregion
 
+#region Using Directives
+
+using System;
+using System.Diagnostics.Tracing;
+using System.IO;
+using System.Runtime.CompilerServices;
+using Microsoft.ServiceFabric.Actors.Runtime;
 
 #endregion
 
 namespace Microsoft.AzureCat.Samples.Framework
 {
-    using System;
-    using System.Diagnostics.Tracing;
-    using System.IO;
-    using System.Runtime.CompilerServices;
-    using Microsoft.ServiceFabric.Actors.Runtime;
-
     [EventSource(Name = "LongRunningActors-Framework-Actor")]
     public sealed class ActorEventSource : EventSource
     {
@@ -25,22 +37,19 @@ namespace Microsoft.AzureCat.Samples.Framework
         [Event(1, Level = EventLevel.Informational, Message = "{0}")]
         public void Message(string message, [CallerFilePath] string source = "", [CallerMemberName] string method = "")
         {
-            if (!this.IsEnabled())
-            {
+            if (!IsEnabled())
                 return;
-            }
-            this.WriteEvent(1, $"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {message}");
+            WriteEvent(1, $"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {message}");
         }
 
         [NonEvent]
-        public void ActorMessage(Actor actor, string message, [CallerFilePath] string source = "", [CallerMemberName] string method = "", params object[] args)
+        public void ActorMessage(Actor actor, string message, [CallerFilePath] string source = "",
+            [CallerMemberName] string method = "", params object[] args)
         {
-            if (!this.IsEnabled())
-            {
+            if (!IsEnabled())
                 return;
-            }
-            string finalMessage = string.Format(message, args);
-            this.ActorMessage(
+            var finalMessage = string.Format(message, args);
+            ActorMessage(
                 actor.GetType().ToString(),
                 actor.Id.ToString(),
                 actor.ActorService.Context.CodePackageActivationContext.ApplicationTypeName,
@@ -56,21 +65,19 @@ namespace Microsoft.AzureCat.Samples.Framework
         }
 
         [NonEvent]
-        public void ActorHostInitializationFailed(Exception e, [CallerFilePath] string source = "", [CallerMemberName] string method = "")
+        public void ActorHostInitializationFailed(Exception e, [CallerFilePath] string source = "",
+            [CallerMemberName] string method = "")
         {
-            if (this.IsEnabled())
-            {
-                this.ActorHostInitializationFailed(e.ToString(), GetClassFromFilePath(source) ?? "UNKNOWN", method ?? "UNKNOWN");
-            }
+            if (IsEnabled())
+                ActorHostInitializationFailed(e.ToString(), GetClassFromFilePath(source) ?? "UNKNOWN",
+                    method ?? "UNKNOWN");
         }
 
         [NonEvent]
         public void Error(Exception e, [CallerFilePath] string source = "", [CallerMemberName] string method = "")
         {
-            if (this.IsEnabled())
-            {
-                this.Error($"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {e}");
-            }
+            if (IsEnabled())
+                Error($"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {e}");
         }
 
         [Event(2, Level = EventLevel.Informational, Message = "{11}")]
@@ -88,7 +95,7 @@ namespace Microsoft.AzureCat.Samples.Framework
             string method,
             string message)
         {
-            this.WriteEvent(
+            WriteEvent(
                 2,
                 actorType,
                 actorId,
@@ -107,22 +114,20 @@ namespace Microsoft.AzureCat.Samples.Framework
         [Event(3, Level = EventLevel.Error, Message = "Actor host initialization failed: {0}")]
         private void ActorHostInitializationFailed(string exception, string source, string method)
         {
-            this.WriteEvent(3, exception, source, method);
+            WriteEvent(3, exception, source, method);
         }
 
         [Event(4, Level = EventLevel.Error, Message = "An error occurred: {0}")]
         private void Error(string exception)
         {
-            this.WriteEvent(4, exception);
+            WriteEvent(4, exception);
         }
 
         private static string GetClassFromFilePath(string sourceFilePath)
         {
             if (string.IsNullOrWhiteSpace(sourceFilePath))
-            {
                 return null;
-            }
-            FileInfo file = new FileInfo(sourceFilePath);
+            var file = new FileInfo(sourceFilePath);
             return Path.GetFileNameWithoutExtension(file.Name);
         }
     }

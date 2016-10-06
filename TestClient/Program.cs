@@ -1,38 +1,49 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿#region Copyright
+
+//=======================================================================================
+// Microsoft Azure Customer Advisory Team  
+//
+// This sample is supplemental to the technical guidance published on the community
+// blog at http://blogs.msdn.com/b/paolos/. 
+// 
+// Author: Paolo Salvatori
+//=======================================================================================
+// Copyright © 2016 Microsoft Corporation. All rights reserved.
+// 
+// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER 
+// EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF 
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. YOU BEAR THE RISK OF USING IT.
+//=======================================================================================
+
+#endregion
 
 #region Using Directives
 
-
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Fabric;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AzureCat.Samples.Entities;
+using Microsoft.AzureCat.Samples.WorkerActorService.Interfaces;
+using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Client;
+using Microsoft.ServiceFabric.Actors.Generator;
+using Microsoft.ServiceFabric.Actors.Query;
+using Newtonsoft.Json;
 
 #endregion
 
 namespace Microsoft.AzureCat.Samples.TestClient
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Configuration;
-    using System.Fabric;
-    using System.Fabric.Query;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Runtime.CompilerServices;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft.AzureCat.Samples.Entities;
-    using Microsoft.AzureCat.Samples.WorkerActorService.Interfaces;
-    using Microsoft.ServiceFabric.Actors;
-    using Microsoft.ServiceFabric.Actors.Client;
-    using Microsoft.ServiceFabric.Actors.Generator;
-    using Microsoft.ServiceFabric.Actors.Query;
-    using Newtonsoft.Json;
-
     internal class Program
     {
         #region Main Method
@@ -49,13 +60,12 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 ReadConfiguration();
 
                 // Sets actor service URIs
-                WorkerActorServiceUri = ActorNameFormat.GetFabricServiceUri(typeof(IWorkerActor), ApplicationName);
-                QueueActorServiceUri = ActorNameFormat.GetFabricServiceUri(typeof(IQueueActor), ApplicationName);
-                ProcessorActorServiceUri = ActorNameFormat.GetFabricServiceUri(typeof(IProcessorActor), ApplicationName);
+                workerActorServiceUri = ActorNameFormat.GetFabricServiceUri(typeof(IWorkerActor), ApplicationName);
+                queueActorServiceUri = ActorNameFormat.GetFabricServiceUri(typeof(IQueueActor), ApplicationName);
+                processorActorServiceUri = ActorNameFormat.GetFabricServiceUri(typeof(IProcessorActor), ApplicationName);
 
                 int i;
                 while ((i = SelectOption()) != TestList.Count + 1)
-                {
                     try
                     {
                         PrintTestParameters(TestList[i - 1].Name);
@@ -65,7 +75,6 @@ namespace Microsoft.AzureCat.Samples.TestClient
                     {
                         PrintException(ex);
                     }
-                }
             }
             catch (Exception ex)
             {
@@ -158,14 +167,14 @@ namespace Microsoft.AzureCat.Samples.TestClient
         };
 
         private static readonly string Line = new string('-', 129);
-        private static Uri WorkerActorServiceUri;
-        private static Uri QueueActorServiceUri;
-        private static Uri ProcessorActorServiceUri;
-        private static string GatewayUrl;
-        private static int MessageCount;
-        private static int Steps;
-        private static int Delay;
-        private static int Id;
+        private static Uri workerActorServiceUri;
+        private static Uri queueActorServiceUri;
+        private static Uri processorActorServiceUri;
+        private static string gatewayUrl;
+        private static int messageCount;
+        private static int steps;
+        private static int delay;
+        private static int id;
 
         #endregion
 
@@ -179,34 +188,34 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 const string workerId = "worker01";
 
                 // Creates actor proxy
-                IWorkerActor proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), WorkerActorServiceUri);
+                var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
 
                 // Enqueues N messages. Note: the sequential message processing task emulates K steps of H seconds each to process each message.
                 // However, since it runs on a separate task not awaited by the actor ProcessMessageAsync method,
                 // the method itself returns immediately without waiting the the task completion.
                 // This allows the actor to continue to enqueue requests, while processing messages on a separate task.
-                List<Message> messageList = CreateMessageList();
+                var messageList = CreateMessageList();
 
-                foreach (Message message in messageList)
+                foreach (var message in messageList)
                 {
                     proxy.StartSequentialProcessingAsync(message).Wait();
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
                 }
 
                 while (proxy.IsSequentialProcessingRunningAsync().Result)
                 {
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Waiting for the sequential message processing task completion...");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Waiting for the sequential message processing task completion...");
                     Task.Delay(TimeSpan.FromSeconds(1)).Wait();
                 }
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Sequential message processing task completed.");
 
                 // Retrieves statistics
-                Statistics statistics = proxy.GetProcessingStatisticsAsync().Result;
+                var statistics = proxy.GetProcessingStatisticsAsync().Result;
                 if (statistics == null)
-                {
                     return;
-                }
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -225,23 +234,25 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 const string workerId = "worker01";
 
                 // Creates actor proxy
-                IWorkerActor proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), WorkerActorServiceUri);
+                var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
 
                 // Creates N messages
-                List<Message> messageList = CreateMessageList();
+                var messageList = CreateMessageList();
 
-                List<Task> taskList = new List<Task>();
+                var taskList = new List<Task>();
                 Func<string, Task> waitHandler = async messageId =>
                 {
                     try
                     {
                         while (await proxy.IsParallelProcessingRunningAsync(messageId))
                         {
-                            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Waiting for [{messageId}] parallel processing task completion...");
+                            Console.WriteLine(
+                                $" - [{DateTime.Now.ToLocalTime()}] Waiting for [{messageId}] parallel processing task completion...");
                             await Task.Delay(TimeSpan.FromSeconds(1));
                         }
-                        Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] [{messageId}] Parallel message processing task completed.");
+                        Console.WriteLine(
+                            $" - [{DateTime.Now.ToLocalTime()}] [{messageId}] Parallel message processing task completed.");
                     }
                     catch (Exception ex)
                     {
@@ -250,14 +261,13 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 };
 
                 // Start parallel processing
-                foreach (Message message in messageList)
+                foreach (var message in messageList)
                 {
                     if (!proxy.StartParallelProcessingAsync(message).Result)
-                    {
                         continue;
-                    }
                     taskList.Add(waitHandler(message.MessageId));
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
                 }
 
                 // Wait for message processing completion
@@ -266,11 +276,9 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Parallel message processing tasks completed.");
 
                 // Retrieves statistics
-                Statistics statistics = proxy.GetProcessingStatisticsAsync().Result;
+                var statistics = proxy.GetProcessingStatisticsAsync().Result;
                 if (statistics == null)
-                {
                     return;
-                }
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -289,9 +297,9 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 const string workerId = "worker01";
 
                 // Creates http proxy
-                HttpClient httpClient = new HttpClient
+                var httpClient = new HttpClient
                 {
-                    BaseAddress = new Uri(GatewayUrl)
+                    BaseAddress = new Uri(gatewayUrl)
                 };
                 httpClient.DefaultRequestHeaders.Add("ContentType", "application/json");
                 httpClient.DefaultRequestHeaders.Accept.Clear();
@@ -302,12 +310,12 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 // However, since it runs on a separate task not awaited by the actor ProcessMessageAsync method,
                 // the method itself returns immediately without waiting the the task completion.
                 // This allows the actor to continue to enqueue requests, while processing messages on a separate task.
-                List<Message> messageList = CreateMessageList();
+                var messageList = CreateMessageList();
 
                 string json;
                 StringContent postContent;
                 HttpResponseMessage response;
-                foreach (Message message in messageList)
+                foreach (var message in messageList)
                 {
                     json = JsonConvert.SerializeObject(
                         new Payload
@@ -316,9 +324,12 @@ namespace Microsoft.AzureCat.Samples.TestClient
                             Message = message
                         });
                     postContent = new StringContent(json, Encoding.UTF8, "application/json");
-                    response = httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/sequential/start"), postContent).Result;
+                    response =
+                        httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/sequential/start"),
+                            postContent).Result;
                     response.EnsureSuccessStatusCode();
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
                 }
                 json = JsonConvert.SerializeObject(
                     new Payload
@@ -333,7 +344,8 @@ namespace Microsoft.AzureCat.Samples.TestClient
                             "api/sequential/monitor"),
                         postContent).Result.Content.ReadAsStringAsync().Result))
                 {
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Waiting for the sequential message processing task completion...");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Waiting for the sequential message processing task completion...");
                     Task.Delay(TimeSpan.FromSeconds(1)).Wait();
                     postContent = new StringContent(json, Encoding.UTF8, "application/json");
                 }
@@ -347,20 +359,18 @@ namespace Microsoft.AzureCat.Samples.TestClient
                     });
                 postContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-                response = httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/statistics"), postContent).Result;
+                response =
+                    httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/statistics"), postContent)
+                        .Result;
                 response.EnsureSuccessStatusCode();
                 json = response.Content.ReadAsStringAsync().Result;
                 if (string.IsNullOrWhiteSpace(json))
-                {
                     return;
-                }
 
-                Statistics statistics = JsonConvert.DeserializeObject(json, typeof(Statistics)) as Statistics;
+                var statistics = JsonConvert.DeserializeObject(json, typeof(Statistics)) as Statistics;
 
                 if (statistics == null)
-                {
                     return;
-                }
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -379,9 +389,9 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 const string workerId = "worker01";
 
                 // Creates http proxy
-                HttpClient httpClient = new HttpClient
+                var httpClient = new HttpClient
                 {
-                    BaseAddress = new Uri(GatewayUrl)
+                    BaseAddress = new Uri(gatewayUrl)
                 };
                 httpClient.DefaultRequestHeaders.Add("ContentType", "application/json");
                 httpClient.DefaultRequestHeaders.Accept.Clear();
@@ -389,14 +399,14 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] HttpClient for the [{workerId}] created.");
 
                 // Creates N messages
-                List<Message> messageList = CreateMessageList();
+                var messageList = CreateMessageList();
 
-                List<Task> taskList = new List<Task>();
+                var taskList = new List<Task>();
                 Func<string, Task> waitHandler = async messageId =>
                 {
                     try
                     {
-                        string jsonString = JsonConvert.SerializeObject(
+                        var jsonString = JsonConvert.SerializeObject(
                             new Payload
                             {
                                 WorkerId = workerId,
@@ -405,7 +415,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
                                     MessageId = messageId
                                 }
                             });
-                        StringContent stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+                        var stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
                         while (bool.Parse(
                             await (await httpClient.PostAsync(
                                 Combine(
@@ -413,11 +423,13 @@ namespace Microsoft.AzureCat.Samples.TestClient
                                     "api/parallel/monitor"),
                                 stringContent)).Content.ReadAsStringAsync()))
                         {
-                            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Waiting for [{messageId}] parallel processing task completion...");
+                            Console.WriteLine(
+                                $" - [{DateTime.Now.ToLocalTime()}] Waiting for [{messageId}] parallel processing task completion...");
                             Task.Delay(TimeSpan.FromSeconds(1)).Wait();
                             stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
                         }
-                        Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] [{messageId}] parallel processing tasks completed.");
+                        Console.WriteLine(
+                            $" - [{DateTime.Now.ToLocalTime()}] [{messageId}] parallel processing tasks completed.");
                     }
                     catch (Exception ex)
                     {
@@ -429,7 +441,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 StringContent postContent;
                 HttpResponseMessage response;
 
-                foreach (Message message in messageList)
+                foreach (var message in messageList)
                 {
                     json = JsonConvert.SerializeObject(
                         new Payload
@@ -438,15 +450,16 @@ namespace Microsoft.AzureCat.Samples.TestClient
                             Message = message
                         });
                     postContent = new StringContent(json, Encoding.UTF8, "application/json");
-                    response = httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/parallel/start"), postContent).Result;
+                    response =
+                        httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/parallel/start"),
+                            postContent).Result;
                     response.EnsureSuccessStatusCode();
                     bool value;
                     if (bool.TryParse(response.Content.ReadAsStringAsync().Result, out value) && !value)
-                    {
                         continue;
-                    }
                     taskList.Add(waitHandler(message.MessageId));
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
                 }
 
                 Task.WaitAll(taskList.ToArray());
@@ -460,20 +473,18 @@ namespace Microsoft.AzureCat.Samples.TestClient
                     });
                 postContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-                response = httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/statistics"), postContent).Result;
+                response =
+                    httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/statistics"), postContent)
+                        .Result;
                 response.EnsureSuccessStatusCode();
                 json = response.Content.ReadAsStringAsync().Result;
                 if (string.IsNullOrWhiteSpace(json))
-                {
                     return;
-                }
 
-                Statistics statistics = JsonConvert.DeserializeObject(json, typeof(Statistics)) as Statistics;
+                var statistics = JsonConvert.DeserializeObject(json, typeof(Statistics)) as Statistics;
 
                 if (statistics == null)
-                {
                     return;
-                }
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -492,15 +503,13 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 const string workerId = "worker01";
 
                 // Creates actor proxy
-                IWorkerActor proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), WorkerActorServiceUri);
+                var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
 
                 // Retrieves statistics
-                Statistics statistics = proxy.GetProcessingStatisticsAsync().Result;
+                var statistics = proxy.GetProcessingStatisticsAsync().Result;
                 if (statistics == null)
-                {
                     return;
-                }
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -519,9 +528,9 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 const string workerId = "worker01";
 
                 // Creates http proxy
-                HttpClient httpClient = new HttpClient
+                var httpClient = new HttpClient
                 {
-                    BaseAddress = new Uri(GatewayUrl)
+                    BaseAddress = new Uri(gatewayUrl)
                 };
                 httpClient.DefaultRequestHeaders.Add("ContentType", "application/json");
                 httpClient.DefaultRequestHeaders.Accept.Clear();
@@ -529,27 +538,25 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] HttpClient for the [{workerId}] created.");
 
                 // Retrieves statistics
-                string json = JsonConvert.SerializeObject(
+                var json = JsonConvert.SerializeObject(
                     new Payload
                     {
                         WorkerId = workerId
                     });
-                StringContent postContent = new StringContent(json, Encoding.UTF8, "application/json");
+                var postContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/statistics"), postContent).Result;
+                var response =
+                    httpClient.PostAsync(Combine(httpClient.BaseAddress.AbsoluteUri, "api/statistics"), postContent)
+                        .Result;
                 response.EnsureSuccessStatusCode();
                 json = response.Content.ReadAsStringAsync().Result;
                 if (string.IsNullOrWhiteSpace(json))
-                {
                     return;
-                }
 
-                Statistics statistics = JsonConvert.DeserializeObject(json, typeof(Statistics)) as Statistics;
+                var statistics = JsonConvert.DeserializeObject(json, typeof(Statistics)) as Statistics;
 
                 if (statistics == null)
-                {
                     return;
-                }
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -568,24 +575,26 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 const string workerId = "worker01";
 
                 // Creates actor proxy
-                IWorkerActor proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), WorkerActorServiceUri);
+                var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
 
                 // Enqueues 1 message with 10 steps. Note: the sequential message processing task emulates K steps of H seconds each to process each message.
                 // However, since it runs on a separate task not awaited by the actor ProcessMessageAsync method,
                 // the method itself returns immediately without waiting the the task completion.
                 // This allows the actor to continue to enqueue requests, while processing messages on a separate task.
-                List<Message> messageList = CreateMessageList(1, 10);
+                var messageList = CreateMessageList(1, 10);
 
-                foreach (Message message in messageList)
+                foreach (var message in messageList)
                 {
                     proxy.StartSequentialProcessingAsync(message).Wait();
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
                 }
 
                 // Waits a couple of seconds before stopping the sequential message processing
-                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Wait 5 seconds before stopping the sequential message processing...");
-                for (int i = 5; i > 0; i--)
+                Console.WriteLine(
+                    $" - [{DateTime.Now.ToLocalTime()}] Wait 5 seconds before stopping the sequential message processing...");
+                for (var i = 5; i > 0; i--)
                 {
                     Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] {i}...");
                     Task.Delay(TimeSpan.FromSeconds(1)).Wait();
@@ -597,17 +606,17 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
                 while (proxy.IsSequentialProcessingRunningAsync().Result)
                 {
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Waiting for the sequential message processing task to stop...");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Waiting for the sequential message processing task to stop...");
                     Task.Delay(TimeSpan.FromSeconds(1)).Wait();
                 }
-                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Sequential message processing task successfully stopped.");
+                Console.WriteLine(
+                    $" - [{DateTime.Now.ToLocalTime()}] Sequential message processing task successfully stopped.");
 
                 // Retrieves statistics
-                Statistics statistics = proxy.GetProcessingStatisticsAsync().Result;
+                var statistics = proxy.GetProcessingStatisticsAsync().Result;
                 if (statistics == null)
-                {
                     return;
-                }
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -626,24 +635,26 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 const string workerId = "worker01";
 
                 // Creates actor proxy
-                IWorkerActor proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), WorkerActorServiceUri);
+                var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
 
                 // Enqueues 1 message with 10 steps. Note: the sequential message processing task emulates K steps of H seconds each to process each message.
                 // However, since it runs on a separate task not awaited by the actor ProcessMessageAsync method,
                 // the method itself returns immediately without waiting the the task completion.
                 // This allows the actor to continue to enqueue requests, while processing messages on a separate task.
-                List<Message> messageList = CreateMessageList(1, 10);
+                var messageList = CreateMessageList(1, 10);
 
-                foreach (Message message in messageList)
+                foreach (var message in messageList)
                 {
                     proxy.StartParallelProcessingAsync(message).Wait();
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
                 }
 
                 // Waits a couple of seconds before stopping the sequential message processing
-                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Wait 5 seconds before stopping the parallel message processing...");
-                for (int i = 5; i > 0; i--)
+                Console.WriteLine(
+                    $" - [{DateTime.Now.ToLocalTime()}] Wait 5 seconds before stopping the parallel message processing...");
+                for (var i = 5; i > 0; i--)
                 {
                     Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] {i}...");
                     Task.Delay(TimeSpan.FromSeconds(1)).Wait();
@@ -655,17 +666,17 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
                 while (proxy.IsParallelProcessingRunningAsync(messageList[0].MessageId).Result)
                 {
-                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Waiting for the parallel message processing task to stop...");
+                    Console.WriteLine(
+                        $" - [{DateTime.Now.ToLocalTime()}] Waiting for the parallel message processing task to stop...");
                     Task.Delay(TimeSpan.FromSeconds(1)).Wait();
                 }
-                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Parallel message processing task successfully stopped.");
+                Console.WriteLine(
+                    $" - [{DateTime.Now.ToLocalTime()}] Parallel message processing task successfully stopped.");
 
                 // Retrieves statistics
-                Statistics statistics = proxy.GetProcessingStatisticsAsync().Result;
+                var statistics = proxy.GetProcessingStatisticsAsync().Result;
                 if (statistics == null)
-                {
                     return;
-                }
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -680,44 +691,44 @@ namespace Microsoft.AzureCat.Samples.TestClient
         {
             try
             {
-                FabricClient fabricClient = new FabricClient();
+                var fabricClient = new FabricClient();
                 // Creates Uri list
-                List<Uri> uriList = new List<Uri>
+                var uriList = new List<Uri>
                 {
-                    WorkerActorServiceUri,
-                    QueueActorServiceUri,
-                    ProcessorActorServiceUri
+                    workerActorServiceUri,
+                    queueActorServiceUri,
+                    processorActorServiceUri
                 };
 
-                foreach (Uri uri in uriList)
+                foreach (var uri in uriList)
                 {
-                    ServicePartitionList partitionList = fabricClient.QueryManager.GetPartitionListAsync(uri).Result;
+                    var partitionList = fabricClient.QueryManager.GetPartitionListAsync(uri).Result;
 
                     Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] [{uri}]:");
-                    int total = 0;
+                    var total = 0;
 
-                    foreach (Partition partition in partitionList)
+                    foreach (var partition in partitionList)
                     {
-                        Int64RangePartitionInformation partitionInformation = partition.PartitionInformation as Int64RangePartitionInformation;
+                        var partitionInformation = partition.PartitionInformation as Int64RangePartitionInformation;
                         if (partitionInformation == null)
-                        {
                             continue;
-                        }
-                        long partitionKey = partitionInformation.LowKey;
+                        var partitionKey = partitionInformation.LowKey;
 
                         // Creates CancellationTokenSource
-                        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+                        var cancellationTokenSource = new CancellationTokenSource();
 
                         // Creates ContinuationToken
                         ContinuationToken continuationToken = null;
 
                         // Creates ActorServiceProxy for WorkerActorService
-                        IActorService actorServiceProxy = ActorServiceProxy.Create(uri, partitionKey);
-                        int actorCount = 0;
-                        List<ActorInformation> actorInformationList = new List<ActorInformation>();
+                        var actorServiceProxy = ActorServiceProxy.Create(uri, partitionKey);
+                        var actorCount = 0;
+                        var actorInformationList = new List<ActorInformation>();
                         do
                         {
-                            PagedResult<ActorInformation> queryResult = actorServiceProxy.GetActorsAsync(continuationToken, cancellationTokenSource.Token).Result;
+                            var queryResult =
+                                actorServiceProxy.GetActorsAsync(continuationToken, cancellationTokenSource.Token)
+                                    .Result;
                             if (queryResult.Items.Any())
                             {
                                 actorInformationList.AddRange(queryResult.Items);
@@ -727,11 +738,10 @@ namespace Microsoft.AzureCat.Samples.TestClient
                         } while (continuationToken != null);
 
                         // Prints results
-                        Console.WriteLine($"                          > Partition [{partitionInformation.Id}] contains [{actorCount}] actors.");
-                        foreach (ActorInformation actorInformation in actorInformationList)
-                        {
+                        Console.WriteLine(
+                            $"                          > Partition [{partitionInformation.Id}] contains [{actorCount}] actors.");
+                        foreach (var actorInformation in actorInformationList)
                             Console.WriteLine($"                            > ActorId [{actorInformation.ActorId}]");
-                        }
                         total += actorCount;
                     }
 
@@ -753,12 +763,12 @@ namespace Microsoft.AzureCat.Samples.TestClient
         {
             // Create a line
 
-            int optionCount = TestList.Count + 1;
+            var optionCount = TestList.Count + 1;
 
             Console.WriteLine("Select an option:");
             Console.WriteLine(Line);
 
-            for (int i = 0; i < TestList.Count; i++)
+            for (var i = 0; i < TestList.Count; i++)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write("[{0}] ", i + 1);
@@ -779,11 +789,9 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
             // Select an option
             Console.WriteLine($"Press a key between [1] and [{optionCount}]: ");
-            char key = 'a';
-            while (key < '1' || key > ('1' + optionCount))
-            {
+            var key = 'a';
+            while ((key < '1') || (key > '1' + optionCount))
                 key = Console.ReadKey(true).KeyChar;
-            }
             return key - '1' + 1;
         }
 
@@ -808,16 +816,12 @@ namespace Microsoft.AzureCat.Samples.TestClient
             string memberName = "",
             int sourceLineNumber = 0)
         {
-            AggregateException exception = ex as AggregateException;
+            var exception = ex as AggregateException;
             if (exception != null)
             {
-                foreach (Exception e in exception.InnerExceptions)
-                {
+                foreach (var e in exception.InnerExceptions)
                     if (sourceFilePath != null)
-                    {
                         InternalPrintException(e, sourceFilePath, memberName, sourceLineNumber);
-                    }
-                }
                 return;
             }
             Console.ForegroundColor = ConsoleColor.Green;
@@ -830,7 +834,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
             string fileName = null;
             if (File.Exists(sourceFilePath))
             {
-                FileInfo file = new FileInfo(sourceFilePath);
+                var file = new FileInfo(sourceFilePath);
                 fileName = file.Name;
             }
             Console.Write(string.IsNullOrWhiteSpace(fileName) ? "Unknown" : fileName);
@@ -852,24 +856,22 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
         private static List<Message> CreateMessageList(int messages = -1, int stepCount = -1)
         {
-            List<Message> messageList = new List<Message>();
-            Random random = new Random();
-            stepCount = stepCount < 0 ? Steps : stepCount;
-            messages = messages < 0 ? MessageCount : messages;
-            for (int i = 0; i < messages; i++)
-            {
+            var messageList = new List<Message>();
+            var random = new Random();
+            stepCount = stepCount < 0 ? steps : stepCount;
+            messages = messages < 0 ? messageCount : messages;
+            for (var i = 0; i < messages; i++)
                 messageList.Add(
                     new Message
                     {
-                        MessageId = $"{++Id:000}",
+                        MessageId = $"{++id:000}",
                         Body = $"value: {random.Next(1, 51)}",
                         Properties = new Dictionary<string, object>
                         {
-                            {DelayProperty, TimeSpan.FromSeconds(Delay)},
+                            {DelayProperty, TimeSpan.FromSeconds(delay)},
                             {StepsProperty, stepCount}
                         }
                     });
-            }
             return messageList;
         }
 
@@ -877,9 +879,9 @@ namespace Microsoft.AzureCat.Samples.TestClient
         {
             Console.WriteLine(Line);
             Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Test Name: [{testName}]");
-            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message Count: [{MessageCount}]");
-            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Processing Steps: [{Steps}]");
-            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Delay in Seconds: [{Delay}]");
+            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message Count: [{messageCount}]");
+            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Processing Steps: [{steps}]");
+            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Delay in Seconds: [{delay}]");
             Console.WriteLine(Line);
         }
 
@@ -899,41 +901,31 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
             // Writes latest N results
             if (!statistics.Results.Any())
-            {
                 return;
-            }
             Console.WriteLine($"                          Latest [{statistics.Results.Count()}] results:");
             Console.WriteLine();
-            foreach (Result result in statistics.Results)
-            {
-                Console.WriteLine($"                          > MessageId = [{result.MessageId}] ReturnValue = [{result.ReturnValue}]");
-            }
+            foreach (var result in statistics.Results)
+                Console.WriteLine(
+                    $"                          > MessageId = [{result.MessageId}] ReturnValue = [{result.ReturnValue}]");
         }
 
         private static void ReadConfiguration()
         {
             try
             {
-                GatewayUrl = ConfigurationManager.AppSettings[GatewayUrlParameter] ?? DefaultGatewayUrl;
-                if (string.IsNullOrWhiteSpace(GatewayUrl))
-                {
-                    throw new ArgumentException($"The [{GatewayUrlParameter}] setting in the configuration file is null or invalid.");
-                }
-                string value = ConfigurationManager.AppSettings[MessageCountParameter];
-                if (!int.TryParse(value, out MessageCount))
-                {
-                    MessageCount = DefaultMessageCount;
-                }
+                gatewayUrl = ConfigurationManager.AppSettings[GatewayUrlParameter] ?? DefaultGatewayUrl;
+                if (string.IsNullOrWhiteSpace(gatewayUrl))
+                    throw new ArgumentException(
+                        $"The [{GatewayUrlParameter}] setting in the configuration file is null or invalid.");
+                var value = ConfigurationManager.AppSettings[MessageCountParameter];
+                if (!int.TryParse(value, out messageCount))
+                    messageCount = DefaultMessageCount;
                 value = ConfigurationManager.AppSettings[StepsParameter];
-                if (!int.TryParse(value, out Steps))
-                {
-                    Steps = DefaultSteps;
-                }
+                if (!int.TryParse(value, out steps))
+                    steps = DefaultSteps;
                 value = ConfigurationManager.AppSettings[DelayParameter];
-                if (!int.TryParse(value, out Delay))
-                {
-                    Delay = DefaultDelay;
-                }
+                if (!int.TryParse(value, out delay))
+                    delay = DefaultDelay;
             }
             catch (Exception ex)
             {

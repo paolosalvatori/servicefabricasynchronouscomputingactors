@@ -1,4 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+
 <ServiceManifest Name="GatewayServicePkg"
                  Version="1.0.0"
                  xmlns="http://schemas.microsoft.com/2011/01/fabric"
@@ -28,7 +29,7 @@
       <!-- This endpoint is used by the communication listener to obtain the port on which to 
            listen. Please note that if your service is partitioned, this port is shared with 
            replicas of different partitions that are placed in your code. -->
-      <Endpoint Name="ServiceEndpoint" Type="Input" Protocol="http" Port="8082"/>
+      <Endpoint Name="ServiceEndpoint" Type="Input" Protocol="http" Port="8082" />
     </Endpoints>
   </Resources>
 </ServiceManifest>

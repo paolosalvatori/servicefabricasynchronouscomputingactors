@@ -1,4 +1,5 @@
 ﻿#region Copyright
+
 //=======================================================================================
 // Microsoft Azure Customer Advisory Team  
 //
@@ -13,6 +14,7 @@
 // EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF 
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. YOU BEAR THE RISK OF USING IT.
 //=======================================================================================
+
 #endregion
 
 #region Using Directives
@@ -29,7 +31,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
     internal static class Program
     {
         /// <summary>
-        /// This is the entry point of the service host process.
+        ///     This is the entry point of the service host process.
         /// </summary>
         private static void Main()
         {
@@ -44,37 +46,37 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 // For more information, see http://aka.ms/servicefabricactorsplatform
 
                 ActorRuntime.RegisterActorAsync<WorkerActor>(
-                   (context, actorType) => new ActorService(context, 
-                                                            actorType, 
-                                                            (s, i) => new WorkerActor(s, i), 
-                                                            null, 
-                                                            null, 
-                                                            new ActorServiceSettings
-                                                            {
-                                                                ActorGarbageCollectionSettings = settings
-                                                            })).GetAwaiter().GetResult();
+                    (context, actorType) => new ActorService(context,
+                        actorType,
+                        (s, i) => new WorkerActor(s, i),
+                        null,
+                        null,
+                        new ActorServiceSettings
+                        {
+                            ActorGarbageCollectionSettings = settings
+                        })).GetAwaiter().GetResult();
 
                 ActorRuntime.RegisterActorAsync<QueueActor>(
-                   (context, actorType) => new ActorService(context,
-                                                            actorType,
-                                                            (s, i) => new QueueActor(s, i),
-                                                            null,
-                                                            null,
-                                                            new ActorServiceSettings
-                                                            {
-                                                                ActorGarbageCollectionSettings = settings
-                                                            })).GetAwaiter().GetResult();
+                    (context, actorType) => new ActorService(context,
+                        actorType,
+                        (s, i) => new QueueActor(s, i),
+                        null,
+                        null,
+                        new ActorServiceSettings
+                        {
+                            ActorGarbageCollectionSettings = settings
+                        })).GetAwaiter().GetResult();
 
                 ActorRuntime.RegisterActorAsync<ProcessorActor>(
-                  (context, actorType) => new ActorService(context,
-                                                            actorType,
-                                                            (s, i) => new ProcessorActor(s, i),
-                                                            null,
-                                                            null,
-                                                            new ActorServiceSettings
-                                                            {
-                                                                ActorGarbageCollectionSettings = settings
-                                                            })).GetAwaiter().GetResult();
+                    (context, actorType) => new ActorService(context,
+                        actorType,
+                        (s, i) => new ProcessorActor(s, i),
+                        null,
+                        null,
+                        new ActorServiceSettings
+                        {
+                            ActorGarbageCollectionSettings = settings
+                        })).GetAwaiter().GetResult();
 
                 Thread.Sleep(Timeout.Infinite);
             }

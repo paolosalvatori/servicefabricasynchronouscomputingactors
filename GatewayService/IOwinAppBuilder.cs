@@ -5,14 +5,12 @@
 
 #region Using Directives
 
-
-
 #endregion
+
+using Owin;
 
 namespace Microsoft.AzureCat.Samples.GatewayService
 {
-    using global::Owin;
-
     public interface IOwinAppBuilder
     {
         void Configuration(IAppBuilder appBuilder);

@@ -5,22 +5,19 @@
 
 #region Using Directives
 
-
-
 #endregion
+
+using System;
+using System.Fabric;
+using System.Globalization;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Owin.Hosting;
+using Microsoft.ServiceFabric.Services.Communication.Runtime;
 
 namespace Microsoft.AzureCat.Samples.GatewayService
 {
-    using System;
-    using System.Fabric;
-    using System.Fabric.Description;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft.Owin.Hosting;
-    using Microsoft.ServiceFabric.Services.Communication.Runtime;
-
     public class OwinCommunicationListener : ICommunicationListener
     {
         #region Public Constructor
@@ -44,13 +41,11 @@ namespace Microsoft.AzureCat.Samples.GatewayService
 
         private void StopWebServer()
         {
-            if (this.serverHandle == null)
-            {
+            if (serverHandle == null)
                 return;
-            }
             try
             {
-                this.serverHandle.Dispose();
+                serverHandle.Dispose();
             }
             catch (ObjectDisposedException)
             {
@@ -88,45 +83,45 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             try
             {
                 // Read settings from the DeviceActorServiceConfig section in the Settings.xml file
-                ICodePackageActivationContext activationContext = this.context.CodePackageActivationContext;
-                ConfigurationPackage config = activationContext.GetConfigurationPackageObject(ConfigurationPackage);
-                ConfigurationSection section = config.Settings.Sections[ConfigurationSection];
+                var activationContext = context.CodePackageActivationContext;
+                var config = activationContext.GetConfigurationPackageObject(ConfigurationPackage);
+                var section = config.Settings.Sections[ConfigurationSection];
 
                 // Check if a parameter called WorkerActorServiceUri exists in the DeviceActorServiceConfig config section
                 if (section.Parameters.Any(
                     p => string.Compare(
-                        p.Name,
-                        DeviceActorServiceUriParameter,
-                        StringComparison.InvariantCultureIgnoreCase) == 0))
+                             p.Name,
+                             DeviceActorServiceUriParameter,
+                             StringComparison.InvariantCultureIgnoreCase) == 0))
                 {
-                    ConfigurationProperty parameter = section.Parameters[DeviceActorServiceUriParameter];
+                    var parameter = section.Parameters[DeviceActorServiceUriParameter];
                     WorkerActorServiceUri = !string.IsNullOrWhiteSpace(parameter?.Value)
                         ? parameter.Value
                         :
                         // By default, the current service assumes that if no URI is explicitly defined for the actor service
                         // in the Setting.xml file, the latter is hosted in the same Service Fabric application.
-                        $"fabric:/{this.context.ServiceName.Segments[1]}WorkerActorService";
+                        $"fabric:/{context.ServiceName.Segments[1]}WorkerActorService";
                 }
                 else
                 {
                     // By default, the current service assumes that if no URI is explicitly defined for the actor service
                     // in the Setting.xml file, the latter is hosted in the same Service Fabric application.
-                    WorkerActorServiceUri = $"fabric:/{this.context.ServiceName.Segments[1]}WorkerActorService";
+                    WorkerActorServiceUri = $"fabric:/{context.ServiceName.Segments[1]}WorkerActorService";
                 }
 
-                EndpointResourceDescription serviceEndpoint = this.context.CodePackageActivationContext.GetEndpoint("ServiceEndpoint");
-                int port = serviceEndpoint.Port;
+                var serviceEndpoint = context.CodePackageActivationContext.GetEndpoint("ServiceEndpoint");
+                var port = serviceEndpoint.Port;
 
-                this.listeningAddress = string.Format(
+                listeningAddress = string.Format(
                     CultureInfo.InvariantCulture,
                     "http://+:{0}/{1}",
                     port,
-                    String.IsNullOrWhiteSpace(this.appRoot)
-                        ? String.Empty
-                        : this.appRoot.TrimEnd('/') + '/');
+                    string.IsNullOrWhiteSpace(appRoot)
+                        ? string.Empty
+                        : appRoot.TrimEnd('/') + '/');
 
-                this.serverHandle = WebApp.Start(this.listeningAddress, appBuilder => this.startup.Configuration(appBuilder));
-                string publishAddress = this.listeningAddress.Replace("+", FabricRuntime.GetNodeContext().IPAddressOrFQDN);
+                serverHandle = WebApp.Start(listeningAddress, appBuilder => startup.Configuration(appBuilder));
+                var publishAddress = listeningAddress.Replace("+", FabricRuntime.GetNodeContext().IPAddressOrFQDN);
 
                 ServiceEventSource.Current.Message($"Listening on [{publishAddress}]");
 
@@ -143,7 +138,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         {
             ServiceEventSource.Current.Message("Close");
 
-            this.StopWebServer();
+            StopWebServer();
 
             return Task.FromResult(true);
         }
@@ -152,7 +147,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         {
             ServiceEventSource.Current.Message("Abort");
 
-            this.StopWebServer();
+            StopWebServer();
         }
 
         #endregion

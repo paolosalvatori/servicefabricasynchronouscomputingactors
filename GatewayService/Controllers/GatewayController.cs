@@ -5,26 +5,25 @@
 
 #region Using Directices
 
-
-
 #endregion
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Web.Http;
+using Microsoft.AzureCat.Samples.Entities;
+using Microsoft.AzureCat.Samples.WorkerActorService.Interfaces;
+using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Client;
 
 namespace Microsoft.AzureCat.Samples.GatewayService
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using System.Web.Http;
-    using Microsoft.AzureCat.Samples.Entities;
-    using Microsoft.AzureCat.Samples.WorkerActorService.Interfaces;
-    using Microsoft.ServiceFabric.Actors;
-    using Microsoft.ServiceFabric.Actors.Client;
-
     public class GatewayController : ApiController
     {
         #region Private Static Fields
 
-        private static readonly Dictionary<string, IWorkerActor> actorProxyDictionary = new Dictionary<string, IWorkerActor>();
+        private static readonly Dictionary<string, IWorkerActor> actorProxyDictionary =
+            new Dictionary<string, IWorkerActor>();
 
         #endregion
 
@@ -35,9 +34,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             lock (actorProxyDictionary)
             {
                 if (actorProxyDictionary.ContainsKey(workerId))
-                {
                     return actorProxyDictionary[workerId];
-                }
                 actorProxyDictionary[workerId] = ActorProxy.Create<IWorkerActor>(
                     new ActorId(workerId),
                     new Uri(OwinCommunicationListener.WorkerActorServiceUri));
@@ -64,7 +61,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         }
 
         /// <summary>
-        /// Starts processing a message in sequential order.
+        ///     Starts processing a message in sequential order.
         /// </summary>
         /// <param name="payload">The payload containing the worker id and message to process.</param>
         /// <returns>True if the operation completes successfully, false otherwise.</returns>
@@ -78,16 +75,12 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                 if (string.IsNullOrWhiteSpace(payload?.WorkerId) ||
                     string.IsNullOrWhiteSpace(payload.Message?.MessageId) ||
                     string.IsNullOrWhiteSpace(payload.Message.Body))
-                {
                     throw new ArgumentException($"Parameter {nameof(payload)} is null or invalid.", nameof(payload));
-                }
 
                 // Gets actor proxy
-                IWorkerActor proxy = GetActorProxy(payload.WorkerId);
+                var proxy = GetActorProxy(payload.WorkerId);
                 if (proxy == null)
-                {
                     return false;
-                }
 
                 // Invokes actor using proxy
                 ServiceEventSource.Current.Message(
@@ -97,13 +90,9 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
-                {
                     return false;
-                }
-                foreach (Exception exception in ex.InnerExceptions)
-                {
+                foreach (var exception in ex.InnerExceptions)
                     ServiceEventSource.Current.Message(exception.Message);
-                }
             }
             catch (Exception ex)
             {
@@ -113,7 +102,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         }
 
         /// <summary>
-        /// Starts processing a message on a separate task. 
+        ///     Starts processing a message on a separate task.
         /// </summary>
         /// <param name="payload">The payload containing the worker id and message to process.</param>
         /// <returns>True if the operation completes successfully, false otherwise.</returns>
@@ -127,16 +116,12 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                 if (string.IsNullOrWhiteSpace(payload?.WorkerId) ||
                     string.IsNullOrWhiteSpace(payload.Message?.MessageId) ||
                     string.IsNullOrWhiteSpace(payload.Message.Body))
-                {
                     throw new ArgumentException($"Parameter {nameof(payload)} is null or invalid.", nameof(payload));
-                }
 
                 // Gets actor proxy
-                IWorkerActor proxy = GetActorProxy(payload.WorkerId);
+                var proxy = GetActorProxy(payload.WorkerId);
                 if (proxy == null)
-                {
                     return false;
-                }
 
                 // Invokes actor using proxy
                 ServiceEventSource.Current.Message(
@@ -146,13 +131,9 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
-                {
                     return false;
-                }
-                foreach (Exception exception in ex.InnerExceptions)
-                {
+                foreach (var exception in ex.InnerExceptions)
                     ServiceEventSource.Current.Message(exception.Message);
-                }
             }
             catch (Exception ex)
             {
@@ -162,7 +143,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         }
 
         /// <summary>
-        /// Stops the sequential processing task of running in a specific worker actor.
+        ///     Stops the sequential processing task of running in a specific worker actor.
         /// </summary>
         /// <param name="payload">The payload containing the worker id.</param>
         /// <returns>True if the operation completes successfully, false otherwise.</returns>
@@ -174,31 +155,24 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             {
                 // Validates parameter
                 if (string.IsNullOrWhiteSpace(payload?.WorkerId))
-                {
                     throw new ArgumentException($"Parameter {nameof(payload)} is null or invalid.", nameof(payload));
-                }
 
                 // Gets actor proxy
-                IWorkerActor proxy = GetActorProxy(payload.WorkerId);
+                var proxy = GetActorProxy(payload.WorkerId);
                 if (proxy == null)
-                {
                     return false;
-                }
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].StopSequentialProcessingAsync...");
+                ServiceEventSource.Current.Message(
+                    $"Calling WorkerActor[{payload.WorkerId}].StopSequentialProcessingAsync...");
                 return await proxy.StopSequentialProcessingAsync();
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
-                {
                     return false;
-                }
-                foreach (Exception exception in ex.InnerExceptions)
-                {
+                foreach (var exception in ex.InnerExceptions)
                     ServiceEventSource.Current.Message(exception.Message);
-                }
             }
             catch (Exception ex)
             {
@@ -208,7 +182,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         }
 
         /// <summary>
-        /// Stops the elaboration of a specific message by a given worker actor.
+        ///     Stops the elaboration of a specific message by a given worker actor.
         /// </summary>
         /// <param name="payload">The payload containing the worker id.</param>
         /// <returns>True if the operation completes successfully, false otherwise.</returns>
@@ -221,16 +195,12 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                 // Validates parameter
                 if (string.IsNullOrWhiteSpace(payload?.WorkerId) ||
                     string.IsNullOrWhiteSpace(payload.Message?.MessageId))
-                {
                     throw new ArgumentException($"Parameter {nameof(payload)} is null or invalid.", nameof(payload));
-                }
 
                 // Gets actor proxy
-                IWorkerActor proxy = GetActorProxy(payload.WorkerId);
+                var proxy = GetActorProxy(payload.WorkerId);
                 if (proxy == null)
-                {
                     return false;
-                }
 
                 // Invokes actor using proxy
                 ServiceEventSource.Current.Message(
@@ -240,13 +210,9 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
-                {
                     return false;
-                }
-                foreach (Exception exception in ex.InnerExceptions)
-                {
+                foreach (var exception in ex.InnerExceptions)
                     ServiceEventSource.Current.Message(exception.Message);
-                }
             }
             catch (Exception ex)
             {
@@ -256,7 +222,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         }
 
         /// <summary>
-        /// Checks if the sequential processing task running is a given worker actor is still active.
+        ///     Checks if the sequential processing task running is a given worker actor is still active.
         /// </summary>
         /// <param name="payload">The payload containing the worker id.</param>
         /// <returns>True if sequential processing task is still running, false otherwise.</returns>
@@ -268,31 +234,24 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             {
                 // Validates parameter
                 if (string.IsNullOrWhiteSpace(payload?.WorkerId))
-                {
                     throw new ArgumentException($"Parameter {nameof(payload)} is null or invalid.", nameof(payload));
-                }
 
                 // Gets actor proxy
-                IWorkerActor proxy = GetActorProxy(payload.WorkerId);
+                var proxy = GetActorProxy(payload.WorkerId);
                 if (proxy == null)
-                {
                     return false;
-                }
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].IsSequentialProcessingRunningAsync...");
+                ServiceEventSource.Current.Message(
+                    $"Calling WorkerActor[{payload.WorkerId}].IsSequentialProcessingRunningAsync...");
                 return await proxy.IsSequentialProcessingRunningAsync();
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
-                {
                     return false;
-                }
-                foreach (Exception exception in ex.InnerExceptions)
-                {
+                foreach (var exception in ex.InnerExceptions)
                     ServiceEventSource.Current.Message(exception.Message);
-                }
             }
             catch (Exception ex)
             {
@@ -302,7 +261,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         }
 
         /// <summary>
-        /// Checks if the elaboration of a given message by a given worker actor is still active.
+        ///     Checks if the elaboration of a given message by a given worker actor is still active.
         /// </summary>
         /// <param name="payload">The payload containing the worker id.</param>
         /// <returns>True if sequential processing task is still running, false otherwise.</returns>
@@ -315,16 +274,12 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                 // Validates parameter
                 if (string.IsNullOrWhiteSpace(payload?.WorkerId) ||
                     string.IsNullOrWhiteSpace(payload.Message?.MessageId))
-                {
                     throw new ArgumentException($"Parameter {nameof(payload)} is null or invalid.", nameof(payload));
-                }
 
                 // Gets actor proxy
-                IWorkerActor proxy = GetActorProxy(payload.WorkerId);
+                var proxy = GetActorProxy(payload.WorkerId);
                 if (proxy == null)
-                {
                     return false;
-                }
 
                 // Invokes actor using proxy
                 ServiceEventSource.Current.Message(
@@ -334,13 +289,9 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
-                {
                     return false;
-                }
-                foreach (Exception exception in ex.InnerExceptions)
-                {
+                foreach (var exception in ex.InnerExceptions)
                     ServiceEventSource.Current.Message(exception.Message);
-                }
             }
             catch (Exception ex)
             {
@@ -350,8 +301,8 @@ namespace Microsoft.AzureCat.Samples.GatewayService
         }
 
         /// <summary>
-        /// Gets the worker actor statistics from its internal state.
-        /// <param name="payload">The payload containing the worker id.</param>
+        ///     Gets the worker actor statistics from its internal state.
+        ///     <param name="payload">The payload containing the worker id.</param>
         /// </summary>
         /// <returns>The worker actor statistics.</returns>
         [HttpPost]
@@ -362,31 +313,24 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             {
                 // Validates parameter
                 if (string.IsNullOrWhiteSpace(payload?.WorkerId))
-                {
                     throw new ArgumentException($"Parameter {nameof(payload)} is null or invalid.", nameof(payload));
-                }
 
                 // Gets actor proxy
-                IWorkerActor proxy = GetActorProxy(payload.WorkerId);
+                var proxy = GetActorProxy(payload.WorkerId);
                 if (proxy == null)
-                {
                     return null;
-                }
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].GetProcessingStatisticsAsync...");
+                ServiceEventSource.Current.Message(
+                    $"Calling WorkerActor[{payload.WorkerId}].GetProcessingStatisticsAsync...");
                 return await proxy.GetProcessingStatisticsAsync();
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
-                {
                     return null;
-                }
                 foreach (var exception in ex.InnerExceptions)
-                {
                     ServiceEventSource.Current.Message(exception.Message);
-                }
             }
             catch (Exception ex)
             {

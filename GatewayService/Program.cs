@@ -5,21 +5,19 @@
 
 #region Using Directives
 
-
-
 #endregion
+
+using System;
+using System.Diagnostics;
+using System.Threading;
+using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace Microsoft.AzureCat.Samples.GatewayService
 {
-    using System;
-    using System.Diagnostics;
-    using System.Threading;
-    using Microsoft.ServiceFabric.Services.Runtime;
-
     internal static class Program
     {
         /// <summary>
-        /// This is the entry point of the service host process.
+        ///     This is the entry point of the service host process.
         /// </summary>
         private static void Main()
         {
@@ -34,7 +32,8 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                     "GatewayServiceType",
                     context => new GatewayService(context)).GetAwaiter().GetResult();
 
-                ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(GatewayService).Name);
+                ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id,
+                    typeof(GatewayService).Name);
 
                 // Prevents this host process from terminating so services keep running.
                 Thread.Sleep(Timeout.Infinite);
