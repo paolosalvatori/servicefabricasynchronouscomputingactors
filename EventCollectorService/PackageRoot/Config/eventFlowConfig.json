@@ -1,0 +1,94 @@
+{
+  "inputs": [
+    {
+      "type": "ETW",
+      "providers": [
+        {
+          "providerName": "Microsoft-ServiceFabric-Services",
+          "level": "servicefabric:/DiagnosticPipelineParametersConfig/TraceLevel"
+        },
+        {
+          "providerName": "Microsoft-ServiceFabric-Actors",
+          "level": "servicefabric:/DiagnosticPipelineParametersConfig/TraceLevel"
+        },
+        {
+          "providerName": "LongRunningActors-Framework-Service",
+          "level": "servicefabric:/DiagnosticPipelineParametersConfig/TraceLevel"
+        },
+        {
+          "providerName": "LongRunningActors-Framework-Actor",
+          "level": "servicefabric:/DiagnosticPipelineParametersConfig/TraceLevel"
+        }
+      ]
+    }
+  ],
+  "filters": [
+    {
+      "type": "drop",
+      "include": "Level == Verbose || ProviderName == System.Threading.Tasks.TplEventSource || (ProviderName == Microsoft-ServiceFabric-Services && EventName == ManifestData)"
+    },
+    {
+      "type": "drop",
+      "include": "(ProviderName == Microsoft-ServiceFabric-Services && EventName == ManifestData) || (ProviderName == LongRunningActors-Framework-Actor && EventName == ManifestData)"
+    }
+  ],
+  "outputs": [
+    {
+      "type": "EventHub",
+      "eventHubName": "diagnosticseventfloweventhub",
+      "connectionString": "<Event Hub Connection String>",
+      "filters": [
+        {
+          "type": "drop",
+          "include": "ProviderName == Microsoft-ServiceFabric-Services || ProviderName == Microsoft-ServiceFabric-Actors"
+        }
+      ]
+    },
+    {
+      "type": "ApplicationInsights",
+      "instrumentationKey": "<ApplicationInsightsInstrumentationKey>",
+      "filters": [
+        {
+          "type": "metadata",
+          "metadata": "request",
+          "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == RequestComplete",
+          "requestNameProperty": "requestName",
+          "isSuccessProperty": "isSuccess",
+          "durationProperty": "duration",
+          "durationUnit": "milliseconds",
+          "responseCodeProperty": "response"
+        },
+        {
+          "type": "metadata",
+          "metadata": "metric",
+          "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == ReceivedMessage",
+          "metricName": "ReceivedMessages",
+          "metricValue": "1.0"
+        },
+        {
+          "type": "metadata",
+          "metadata": "metric",
+          "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == StoppedMessage",
+          "metricName": "StoppedMessages",
+          "metricValue": "1.0"
+        },
+        {
+          "type": "metadata",
+          "metadata": "metric",
+          "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == ProcessedMessage",
+          "metricName": "ProcessedMessages",
+          "metricValue": "1.0"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": "2016-08-11",
+  "settings": {
+    "pipelineBufferSize": "1000",
+    "maxEventBatchSize": "100",
+    "maxBatchDelayMsec": "500",
+    "maxConcurrency": "8",
+    "pipelineCompletionTimeoutMsec": "30000"
+  },
+  "extensions": []
+}

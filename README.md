@@ -29,6 +29,9 @@ This sample also demonstrates how to:
 - How to inherit a stateful actor from an abstract base class.
 - How to create a custom collection using a stateful actor class that inherits from the [Actor](https://msdn.microsoft.com/en-us/library/microsoft.servicefabric.actors.statefulactor.aspx "Actor") class and manually handles the internal state using its [StateManager](https://msdn.microsoft.com/en-us/library/microsoft.servicefabric.actors.iactorstatemanager.aspx "StateManager") property.
 - How to run multiple actor services within the same process.
+- How to register, unregister and use Reminders
+- How to use Actor Events
+- How to use https://github.com/Azure/diagnostics-eventflow to log ETW Events
 
 For more information on the turn-based model for accessing actor methods, see the following resources:
 

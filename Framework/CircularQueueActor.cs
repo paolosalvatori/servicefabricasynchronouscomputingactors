@@ -78,15 +78,19 @@ namespace Microsoft.AzureCat.Samples.Framework
             try
             {
                 if (item == null)
+                {
                     throw new ArgumentException($"{nameof(item)} parameter cannot be null", nameof(item));
+                }
                 var result = await StateManager.TryGetStateAsync<long>(TailIndexState);
                 if (!result.HasValue)
+                {
                     return;
+                }
                 var tail = result.Value == long.MaxValue ? 0 : result.Value + 1;
                 await StateManager.SetStateAsync(TailIndexState, tail);
                 var key = tail.ToString();
                 await StateManager.TryAddStateAsync(key, item);
-                ActorEventSource.Current.Message($"Message successfully enqueued. Tail=[{tail}]");
+                ActorEventSource.Current.Message($"Message successfully enqueued. Tail=[{tail}]"); 
             }
             catch (Exception ex)
             {
@@ -108,13 +112,17 @@ namespace Microsoft.AzureCat.Samples.Framework
                 if (!headerResult.HasValue ||
                     !tailResult.HasValue ||
                     (headerResult.Value == tailResult.Value))
+                {
                     return null;
+                }
                 var tail = tailResult.Value;
                 var header = headerResult.Value == long.MaxValue ? 0 : headerResult.Value + 1;
                 var key = header.ToString();
                 var result = await StateManager.TryGetStateAsync<Message>(key);
                 if (!result.HasValue)
+                {
                     return null;
+                }
                 await StateManager.TryRemoveStateAsync(key);
                 await StateManager.SetStateAsync(HeaderIndexState, header);
                 ActorEventSource.Current.Message($"Message successfully dequeued. Header=[{header}] Tail=[{tail}]");
@@ -169,7 +177,9 @@ namespace Microsoft.AzureCat.Samples.Framework
                 var header = await StateManager.GetStateAsync<long>(HeaderIndexState);
                 var tail = await StateManager.GetStateAsync<long>(TailIndexState);
                 if (tail == header)
+                {
                     return null;
+                }
                 var current = header == long.MaxValue ? 0 : header + 1;
                 var key = current.ToString();
                 var result = await StateManager.TryGetStateAsync<Message>(key);
@@ -194,7 +204,7 @@ namespace Microsoft.AzureCat.Samples.Framework
                 {
                     var names = StateManager.GetStateNamesAsync().Result;
                     var enumerable = names as string[] ?? names.ToArray();
-                    var i = enumerable.Any() ? enumerable.Count() : 0;
+                    var i = enumerable.Any() ? enumerable.Length - 2: 0;
                     ActorEventSource.Current.Message($"There are [{i}] messages in the queue.");
                     return Task.FromResult<long>(i);
                 }

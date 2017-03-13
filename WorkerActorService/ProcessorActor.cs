@@ -43,6 +43,25 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
     [StatePersistence(StatePersistence.Persisted)]
     internal class ProcessorActor : Actor, IProcessorActor, IRemindable
     {
+        #region Private Constants
+
+        //************************************
+        // Constants
+        //************************************
+        private const string DelayProperty = "delay";
+        private const string StepsProperty = "steps";
+        private const string WorkerId = "workerId";
+        private const string Message = "message";
+
+        #endregion
+
+        #region Private Fields
+
+        private Uri queueActorServiceUri;
+        private Uri workerActorServiceUri;
+
+        #endregion
+
         #region Public Constructor
 
         /// <summary>
@@ -63,6 +82,13 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         {
             try
             {
+                // Unregister reminder
+                var reminder = GetReminder(reminderName);
+                if (reminder != null)
+                {
+                    await UnregisterReminderAsync(reminder);
+                }
+
                 // Gets the message id from the context
                 var messageId = Id.GetStringId();
 
@@ -244,25 +270,6 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
             ActorEventSource.Current.Message($"Worker Actor [{Id}] activated.");
             return Task.FromResult(0);
         }
-
-        #endregion
-
-        #region Private Constants
-
-        //************************************
-        // Constants
-        //************************************
-        private const string DelayProperty = "delay";
-        private const string StepsProperty = "steps";
-        private const string WorkerId = "workerId";
-        private const string Message = "message";
-
-        #endregion
-
-        #region Private Fields
-
-        private Uri queueActorServiceUri;
-        private Uri workerActorServiceUri;
 
         #endregion
 
@@ -461,7 +468,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     cancellationToken,
                     cancellationToken);
 
-                await RegisterReminderAsync(Guid.NewGuid().ToString(),
+                await RegisterReminderAsync(message.MessageId,
                     null,
                     TimeSpan.FromMilliseconds(10),
                     TimeSpan.FromMilliseconds(-1));

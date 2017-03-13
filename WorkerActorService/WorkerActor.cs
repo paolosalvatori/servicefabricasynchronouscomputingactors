@@ -21,7 +21,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AzureCat.Samples.Entities;
@@ -43,6 +43,30 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
     [StatePersistence(StatePersistence.Persisted)]
     internal class WorkerActor : Actor, IWorkerActor, IRemindable
     {
+        #region Private Constants
+
+        //************************************
+        // States
+        //************************************
+        private const string ReceivedState = "received";
+        private const string CompleteState = "complete";
+        private const string StoppedState = "aborted";
+        private const string MinValueState = "minValue";
+        private const string MaxValueState = "maxValue";
+        private const string TotValueState = "totValue";
+        private const string AvgValueState = "avgValue";
+        private const string ResultQueueState = "resultQueue";
+        private const string ProcessingState = "state";
+
+        #endregion
+
+        #region Private Fields
+
+        private Uri queueActorServiceUri;
+        private Uri processorActorServiceUri;
+
+        #endregion
+
         #region Public Constructor
 
         /// <summary>
@@ -63,6 +87,13 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         {
             try
             {
+                // Unregister reminder
+                var reminder = GetReminder(reminderName);
+                if (reminder != null)
+                {
+                    await UnregisterReminderAsync(reminder);
+                }
+                
                 // Retieves the cancellation token source from the actor state
                 var result = await StateManager.TryGetStateAsync<CancellationTokenSource>(ProcessingState);
                 if (result.HasValue)
@@ -93,94 +124,56 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
 
         protected override async Task OnActivateAsync()
         {
-            await base.OnActivateAsync();
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
 
-            // Reads settings
-            ReadSettings();
-
-            // Sets actor URIs
-            queueActorServiceUri = new Uri($"{ApplicationName}/QueueActorService");
-            processorActorServiceUri = new Uri($"{ApplicationName}/ProcessorActorService");
-
-            // First Activation
-            await StateManager.TryAddStateAsync(ReceivedState, (long) 0);
-            await StateManager.TryAddStateAsync(CompleteState, (long) 0);
-            await StateManager.TryAddStateAsync(StoppedState, (long) 0);
-            await StateManager.TryAddStateAsync(MinValueState, long.MaxValue);
-            await StateManager.TryAddStateAsync(MaxValueState, long.MinValue);
-            await StateManager.TryAddStateAsync(TotValueState, (long) 0);
-            await StateManager.TryAddStateAsync(AvgValueState, (double) 0);
-            await StateManager.TryAddStateAsync(ResultQueueState, new Queue<Result>(queueLength));
-
-            // Logs event
-            ActorEventSource.Current.Message($"Worker Actor [{Id}] activated.");
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        private void ReadSettings()
-        {
-            // Read settings from the DeviceActorServiceConfig section in the Settings.xml file
-            var activationContext = ActorService.Context.CodePackageActivationContext;
-            var config = activationContext.GetConfigurationPackageObject(ConfigurationPackage);
-            var section = config.Settings.Sections[ConfigurationSection];
-
-            // Check if a parameter called QueueLength exists in the ActorConfig config section
-            if (section.Parameters.Any(
-                p => string.Compare(
-                         p.Name,
-                         QueueLengthParameter,
-                         StringComparison.InvariantCultureIgnoreCase) == 0))
+            try
             {
-                var parameter = section.Parameters[QueueLengthParameter];
-                if (!string.IsNullOrWhiteSpace(parameter.Value) &&
-                    int.TryParse(parameter.Value, out queueLength))
-                    return;
+                // Starts stopwatch 
+                stopwatch.Start();
+
+                await base.OnActivateAsync();
+
+                // Sets actor URIs
+                queueActorServiceUri = new Uri($"{ApplicationName}/QueueActorService");
+                processorActorServiceUri = new Uri($"{ApplicationName}/ProcessorActorService");
+
+                // Get queue length
+                var queueLength = ((WorkerActorService) ActorService).QueueLength;
+
+                // First Activation
+                await StateManager.TryAddStateAsync(ReceivedState, (long) 0);
+                await StateManager.TryAddStateAsync(CompleteState, (long) 0);
+                await StateManager.TryAddStateAsync(StoppedState, (long) 0);
+                await StateManager.TryAddStateAsync(MinValueState, long.MaxValue);
+                await StateManager.TryAddStateAsync(MaxValueState, long.MinValue);
+                await StateManager.TryAddStateAsync(TotValueState, (long) 0);
+                await StateManager.TryAddStateAsync(AvgValueState, (double) 0);
+                await StateManager.TryAddStateAsync(ResultQueueState, new Queue<Result>(queueLength));
+
+                // Logs event
+                ActorEventSource.Current.Message($"Worker Actor [{Id}] activated.");
             }
-            queueLength = DefaultQueueLenght;
+            catch (Exception ex)
+            {
+                // Sets success flag to false
+                isSuccess = false;
 
-            // Logs event
-            ActorEventSource.Current.Message($"[{QueueLengthParameter}] = [{queueLength}]");
+                // Logs exception
+                ActorEventSource.Current.Error(ex);
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+                
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.OnActivateAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
+            }
         }
-
-        #endregion
-
-        #region Private Constants
-
-        //************************************
-        // Parameters
-        //************************************
-        private const string ConfigurationPackage = "Config";
-        private const string ConfigurationSection = "WorkerActorCustomConfig";
-        private const string QueueLengthParameter = "QueueLength";
-
-        //************************************
-        // States
-        //************************************
-        private const string ReceivedState = "received";
-        private const string CompleteState = "complete";
-        private const string StoppedState = "aborted";
-        private const string MinValueState = "minValue";
-        private const string MaxValueState = "maxValue";
-        private const string TotValueState = "totValue";
-        private const string AvgValueState = "avgValue";
-        private const string ResultQueueState = "resultQueue";
-        private const string ProcessingState = "state";
-
-        //************************************
-        // Default Values
-        //************************************
-        private const int DefaultQueueLenght = 10;
-
-        #endregion
-
-        #region Private Fields
-
-        private Uri queueActorServiceUri;
-        private Uri processorActorServiceUri;
-        private int queueLength;
 
         #endregion
 
@@ -194,38 +187,44 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         /// <returns>True if the operation completes successfully, false otherwise.</returns>
         public async Task<bool> StartSequentialProcessingAsync(Message message)
         {
+            // Parameters validation
+            if (string.IsNullOrWhiteSpace(message?.MessageId) ||
+                string.IsNullOrWhiteSpace(message.Body))
+            {
+                throw new ArgumentException($"Parameter {nameof(message)} is null or invalid.", nameof(message));
+            }
+
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
+
             try
             {
-                // Parameters validation
-                if (!string.IsNullOrWhiteSpace(message?.MessageId) &&
-                    !string.IsNullOrWhiteSpace(message.Body))
-                {
-                    // Logs event
-                    ActorEventSource.Current.Message(
-                        $"Enqueue sequential processing of MessageId=[{message.MessageId}]...");
+                // Starts stopwatch 
+                stopwatch.Start();
 
-                    // Enqueues the message
-                    var queueActorProxy = ActorProxy.Create<ICircularQueueActor>(new ActorId(Id.ToString()),
-                        queueActorServiceUri);
-                    await queueActorProxy.EnqueueAsync(message);
+                // Logs event
+                ActorEventSource.Current.Message($"Enqueue sequential processing of MessageId=[{message.MessageId}]...");
 
-                    // Logs event
-                    ActorEventSource.Current.Message(
-                        $"Sequential processing of MessageId=[{message.MessageId}] successfully enqueued.");
-                }
+                // Enqueues the message
+                var queueActorProxy = ActorProxy.Create<ICircularQueueActor>(new ActorId(Id.ToString()), queueActorServiceUri);
+                await queueActorProxy.EnqueueAsync(message);
+
+                // Logs event
+                ActorEventSource.Current.Message($"Sequential processing of MessageId=[{message.MessageId}] successfully enqueued.");
 
                 // Updates internal statistics
                 var longResult = await StateManager.TryGetStateAsync<long>(ReceivedState);
                 if (longResult.HasValue)
+                {
                     await StateManager.SetStateAsync(ReceivedState, longResult.Value + 1);
+                }
 
                 // Checks if the sequential process is already running
                 // If yes, the method returns immediately.
                 var result = await StateManager.TryGetStateAsync<CancellationTokenSource>(ProcessingState);
                 if (result.HasValue)
                 {
-                    ActorEventSource.Current.Message(
-                        $"WorkerActor=[{Id}] is already processing messages in a sequential order.");
+                    ActorEventSource.Current.Message($"WorkerActor=[{Id}] is already processing messages in a sequential order.");
                     return true;
                 }
 
@@ -243,12 +242,29 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     null,
                     TimeSpan.FromMilliseconds(10),
                     TimeSpan.FromMilliseconds(-1));
+
+                // Traces metric
+                ActorEventSource.Current.ReceivedMessage();
+
                 return true;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
                 return false;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.StartSequentialProcessingAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -262,13 +278,21 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
             // Parameters validation
             if (string.IsNullOrWhiteSpace(message?.MessageId) ||
                 string.IsNullOrWhiteSpace(message.Body))
+            {
                 throw new ArgumentException($"Parameter {nameof(message)} is null or invalid.", nameof(message));
+            }
 
-            // Logs event
-            ActorEventSource.Current.Message($"Start MessageId=[{message.MessageId}] processing...");
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
 
             try
             {
+                // Starts stopwatch 
+                stopwatch.Start();
+
+                // Logs event
+                ActorEventSource.Current.Message($"Start MessageId=[{message.MessageId}] processing...");
+
                 // Checks if message processing is already running.
                 // If yes, the method returns immediately.
                 var result = await StateManager.TryGetStateAsync<CancellationTokenSource>(message.MessageId);
@@ -299,14 +323,30 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 await actorProxy.ProcessParallelMessagesAsync(Id.ToString(), message, cancellationTokenSource.Token);
 
                 // Logs event
-                ActorEventSource.Current.Message(
-                    $"Parallel processing of MessageId=[{message.MessageId}] successfully started.");
+                ActorEventSource.Current.Message($"Parallel processing of MessageId=[{message.MessageId}] successfully started.");
+
+                // Traces metric
+                ActorEventSource.Current.ReceivedMessage();
+
                 return true;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
                 return false;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.StartParallelProcessingAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -316,8 +356,14 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         /// <returns>True if the operation completes successfully, false otherwise.</returns>
         public async Task<bool> StopSequentialProcessingAsync()
         {
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
+
             try
             {
+                // Starts stopwatch 
+                stopwatch.Start();
+
                 // Logs event
                 ActorEventSource.Current.Message("Stopping sequential processing...");
 
@@ -338,16 +384,31 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     await StateManager.SetStateAsync(StoppedState, longResult.Value + 1);
 
                 // Logs event
-                ActorEventSource.Current.Message(
-                    ok
-                        ? "Sequential processing successfully stopped."
-                        : "Sequential processing failed to stop.");
+                ActorEventSource.Current.Message(ok ? "Sequential processing successfully stopped."
+                                                    : "Sequential processing failed to stop.");
+
+                // Traces metric
+                ActorEventSource.Current.StoppedMessage();
+
                 return true;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
                 return false;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.StopSequentialProcessingAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -360,10 +421,18 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         {
             // Parameters validation
             if (string.IsNullOrWhiteSpace(messageId))
+            {
                 throw new ArgumentException($"Parameter {nameof(messageId)} cannot be null or empty.", nameof(messageId));
+            }
+
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
 
             try
             {
+                // Starts stopwatch 
+                stopwatch.Start();
+
                 // Logs event
                 ActorEventSource.Current.Message($"Stopping parallel processing of MessageId=[{messageId}]...");
 
@@ -384,16 +453,31 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     await StateManager.SetStateAsync(StoppedState, longResult.Value + 1);
 
                 // Logs event
-                ActorEventSource.Current.Message(
-                    ok
-                        ? $"Parallel processing of MessageId=[{messageId}] successfully stopped."
-                        : $"Parallel processing of MessageId=[{messageId}] failed to stop.");
+                ActorEventSource.Current.Message(ok ? $"Parallel processing of MessageId=[{messageId}] successfully stopped."
+                                                    : $"Parallel processing of MessageId=[{messageId}] failed to stop.");
+
+                // Traces metric
+                ActorEventSource.Current.StoppedMessage();
+
                 return true;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
                 return false;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.StopParallelProcessingAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -408,13 +492,24 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         {
             // Parameters validation
             if (string.IsNullOrWhiteSpace(messageId))
+            {
                 messageId = "UNKNOWN";
+            }
+
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
 
             try
             {
+                // Starts stopwatch 
+                stopwatch.Start();
+
                 // Logs event
-                ActorEventSource.Current.Message(
-                    $"Returning sequential processing of MessageId=[{messageId}] ReturnValue=[{returnValue}]...");
+                ActorEventSource.Current.Message($"Returning sequential processing of MessageId=[{messageId}] ReturnValue=[{returnValue}]...");
+
+                // Raises event
+                var ev = GetEvent<IWorkerActorEvents>();
+                ev.MessageProcessingCompleted(messageId, returnValue);
 
                 // Updates internal statistics
                 var ok = true;
@@ -453,6 +548,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                                 ReturnValue = returnValue
                             });
 
+                        // Get queue length
+                        var queueLength = ((WorkerActorService) ActorService).QueueLength;
+
                         // The actor keeps the latest n payloads in a queue, where n is  
                         // defined by the QueueLength parameter in the Settings.xml file.
                         if (queue.Count > queueLength)
@@ -472,16 +570,31 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 }
 
                 // Logs event
-                ActorEventSource.Current.Message(
-                    ok
-                        ? $"Sequential processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] successfully returned."
-                        : $"Sequential processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] failed to store result.");
+                ActorEventSource.Current.Message(ok ? $"Sequential processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] successfully returned."
+                                                    : $"Sequential processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] failed to store result.");
+
+                // Traces metric
+                ActorEventSource.Current.ProcessedMessage();
+
                 return true;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
                 return false;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.ReturnSequentialProcessingAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -496,12 +609,23 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         {
             // Parameters validation
             if (string.IsNullOrWhiteSpace(messageId))
+            {
                 throw new ArgumentException($"Parameter {nameof(messageId)} cannot be null or empty.", nameof(messageId));
+            }
+
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
 
             try
             {
-                ActorEventSource.Current.Message(
-                    $"Returning parallel processing of MessageId=[{messageId}] ReturnValue=[{returnValue}]...");
+                // Starts stopwatch 
+                stopwatch.Start();
+
+                ActorEventSource.Current.Message($"Returning parallel processing of MessageId=[{messageId}] ReturnValue=[{returnValue}]...");
+
+                // Raises event
+                var ev = GetEvent<IWorkerActorEvents>();
+                ev.MessageProcessingCompleted(messageId, returnValue);
 
                 // Retrieves the CancellationTokenSource from the actor state 
                 var result = await StateManager.TryGetStateAsync<CancellationTokenSource>(messageId);
@@ -548,6 +672,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                                 ReturnValue = returnValue
                             });
 
+                        // Get queue length
+                        var queueLength = ((WorkerActorService)ActorService).QueueLength;
+
                         // The actor keeps the latest n payloads in a queue, where n is  
                         // defined by the QueueLength parameter in the Settings.xml file.
                         if (queue.Count > queueLength)
@@ -573,16 +700,31 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 }
 
                 // Logs event
-                ActorEventSource.Current.Message(
-                    ok
-                        ? $"Parallel processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] successfully returned."
-                        : $"Parallel processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] failed to store result.");
+                ActorEventSource.Current.Message(ok ? $"Parallel processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] successfully returned."
+                                                    : $"Parallel processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] failed to store result.");
+
+                // Traces metric
+                ActorEventSource.Current.ProcessedMessage();
+
                 return true;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
                 return false;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.ReturnParallelProcessingAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -592,20 +734,40 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         /// <returns>True if sequential processing task is still running, false otherwise.</returns>
         public async Task<bool> IsSequentialProcessingRunningAsync()
         {
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
+
             try
             {
+                // Starts stopwatch 
+                stopwatch.Start();
+
                 // Retrieves processing state
                 var result = await StateManager.TryGetStateAsync<CancellationTokenSource>(ProcessingState);
                 var value = result.HasValue;
 
                 // Logs event
                 ActorEventSource.Current.Message($"ProcessingState=[{value}]");
+
                 return value;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
                 return false;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.IsSequentialProcessingRunningAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -618,21 +780,43 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         {
             // Parameters validation
             if (string.IsNullOrWhiteSpace(messageId))
+            {
                 throw new ArgumentException($"Parameter {nameof(messageId)} cannot be null or empty.", nameof(messageId));
+            }
+
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
 
             try
             {
+                // Starts stopwatch 
+                stopwatch.Start();
+
                 // Retrieves the CancellationTokenSource from the actor state 
                 var result = await StateManager.TryGetStateAsync<CancellationTokenSource>(messageId);
 
                 // Logs event
                 ActorEventSource.Current.Message($"MessageId=[{messageId}] ProcessingState=[{result.HasValue}]");
+
                 return result.HasValue;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
                 return false;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.IsParallelProcessingRunningAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -643,27 +827,49 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         /// <returns>True if the operation completes successfully, false otherwise.</returns>
         public async Task<bool> CloseSequentialProcessingAsync(bool runningState)
         {
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
+
             try
             {
+                // Starts stopwatch 
+                stopwatch.Start();
+
                 // Logs event
                 ActorEventSource.Current.Message("Closing sequential processing...");
 
                 // Retrieves the CancellationTokenSource from the actor state 
                 var result = await StateManager.TryGetStateAsync<CancellationTokenSource>(ProcessingState);
                 if (!result.HasValue)
+                {
                     return false;
+                }
 
                 // Removes the CancellationTokenSource from the actor state
                 await StateManager.TryRemoveStateAsync(ProcessingState);
 
                 // Logs event
                 ActorEventSource.Current.Message("Sequential processing closed.");
+
                 return true;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
                 return false;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.CloseSequentialProcessingAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -673,8 +879,14 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         /// <returns>True if sequential processing task is still running, false otherwise.</returns>
         public async Task<Statistics> GetProcessingStatisticsAsync()
         {
+            var stopwatch = new Stopwatch();
+            var isSuccess = true;
+
             try
             {
+                // Starts stopwatch 
+                stopwatch.Start();
+
                 // Creates statistics object
                 var statistics = new Statistics();
 
@@ -731,11 +943,25 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     ok
                         ? "Successfully returned all statistics."
                         : "Failed to return all statistics");
+
                 return statistics;
             }
             catch (Exception ex)
             {
+                // Sets success flag to false
+                isSuccess = false;
+
                 ActorEventSource.Current.Error(ex);
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                // Logs method duration
+                ActorEventSource.Current.RequestComplete("WorkerActor.CloseSequentialProcessingAsync",
+                                                 isSuccess,
+                                                 stopwatch.ElapsedMilliseconds,
+                                                 isSuccess ? "Succeded" : "Failed");
             }
             return null;
         }

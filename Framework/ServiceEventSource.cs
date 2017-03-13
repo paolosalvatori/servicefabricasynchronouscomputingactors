@@ -15,10 +15,10 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Services.Runtime;
 
-namespace Microsoft.AzureCat.Samples.GatewayService
+namespace Microsoft.AzureCat.Samples.Framework
 {
     [EventSource(Name = "LongRunningActors-Framework-Service")]
-    internal sealed class ServiceEventSource : EventSource
+    public sealed class ServiceEventSource : EventSource
     {
         public static readonly ServiceEventSource Current = new ServiceEventSource();
 
@@ -201,6 +201,19 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             WriteEvent(ServiceRequestFailedEventId, exception);
         }
 
+        [NonEvent]
+        public void Error(Exception e, [CallerFilePath] string source = "", [CallerMemberName] string method = "")
+        {
+            if (IsEnabled())
+                Error($"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {e}");
+        }
+
+        private const int ErrorEventId = 8;
+        [Event(ErrorEventId, Level = EventLevel.Error, Message = "{0}")]
+        private void Error(string exception)
+        {
+            WriteEvent(ErrorEventId, exception);
+        }
         #endregion
 
         #region Private Static Methods

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "LongRunningActors", "LongRunningActors\LongRunningActors.sfproj", "{5814DFEB-B132-4604-B0D4-778BBB79EB18}"
 EndProject
@@ -34,6 +34,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCollectorService", "EventCollectorService\EventCollectorService.csproj", "{79684A1F-BC90-4DCF-88C6-BB08A198C462}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Powershell", "Powershell", "{9FCB4044-72EE-48DE-8A59-AF9EDD7561E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +105,12 @@ Global
 		{5F7B01C9-C373-45B0-B7C8-42EEDA51C890}.Release|Any CPU.ActiveCfg = Release|x64
 		{5F7B01C9-C373-45B0-B7C8-42EEDA51C890}.Release|x64.ActiveCfg = Release|x64
 		{5F7B01C9-C373-45B0-B7C8-42EEDA51C890}.Release|x64.Build.0 = Release|x64
+		{79684A1F-BC90-4DCF-88C6-BB08A198C462}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{79684A1F-BC90-4DCF-88C6-BB08A198C462}.Debug|x64.ActiveCfg = Debug|x64
+		{79684A1F-BC90-4DCF-88C6-BB08A198C462}.Debug|x64.Build.0 = Debug|x64
+		{79684A1F-BC90-4DCF-88C6-BB08A198C462}.Release|Any CPU.ActiveCfg = Release|x64
+		{79684A1F-BC90-4DCF-88C6-BB08A198C462}.Release|x64.ActiveCfg = Release|x64
+		{79684A1F-BC90-4DCF-88C6-BB08A198C462}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

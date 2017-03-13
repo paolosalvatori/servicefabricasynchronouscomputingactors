@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.AzureCat.Samples.Entities;
+using Microsoft.AzureCat.Samples.Framework;
 using Microsoft.AzureCat.Samples.WorkerActorService.Interfaces;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;

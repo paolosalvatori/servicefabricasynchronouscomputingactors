@@ -31,7 +31,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService.Interfaces
     ///     This interface represents the actions a client app can perform on an actor.
     ///     It MUST derive from IActor and all methods MUST return a Task.
     /// </summary>
-    public interface IWorkerActor : IActor
+    public interface IWorkerActor : IActor, IActorEventPublisher<IWorkerActorEvents>
     {
         /// <summary>
         ///     Starts processing a message in sequential order. If the message parameter is null,

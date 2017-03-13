@@ -32,14 +32,18 @@ namespace Microsoft.AzureCat.Samples.Framework
     [EventSource(Name = "LongRunningActors-Framework-Actor")]
     public sealed class ActorEventSource : EventSource
     {
+        #region Public Static Fields
         public static ActorEventSource Current = new ActorEventSource();
+        #endregion 
 
-        [Event(1, Level = EventLevel.Informational, Message = "{0}")]
+        #region Public Methods
+        private const int MessageEventId = 1;
+        [Event(MessageEventId, Level = EventLevel.Informational, Message = "{0}")]
         public void Message(string message, [CallerFilePath] string source = "", [CallerMemberName] string method = "")
         {
             if (!IsEnabled())
                 return;
-            WriteEvent(1, $"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {message}");
+            WriteEvent(MessageEventId, $"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {message}");
         }
 
         [NonEvent]
@@ -80,23 +84,61 @@ namespace Microsoft.AzureCat.Samples.Framework
                 Error($"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {e}");
         }
 
-        [Event(2, Level = EventLevel.Informational, Message = "{11}")]
-        private void ActorMessage(
-            string actorType,
-            string actorId,
-            string applicationTypeName,
-            string applicationName,
-            string serviceTypeName,
-            string serviceName,
-            Guid partitionId,
-            long replicaOrInstanceId,
-            string nodeName,
-            string source,
-            string method,
-            string message)
+        private const int RequestEventId = 5;
+        [Event(RequestEventId, Level = EventLevel.Informational)]
+        public void RequestComplete(string requestName, bool isSuccess, long duration, string response)
+        {
+            if (IsEnabled())
+                WriteEvent(RequestEventId,
+                           requestName, 
+                           isSuccess, 
+                           duration, 
+                           response);
+        }
+
+        private const int ReceivedMessageEventId = 6;
+        [Event(ReceivedMessageEventId, Level = EventLevel.Informational)]
+        public void ReceivedMessage()
+        {
+            if (IsEnabled())
+                WriteEvent(ReceivedMessageEventId);
+        }
+
+        private const int StoppedMessageEventId = 7;
+        [Event(StoppedMessageEventId, Level = EventLevel.Informational)]
+        public void StoppedMessage()
+        {
+            if (IsEnabled())
+                WriteEvent(StoppedMessageEventId);
+        }
+
+        private const int ProcessedMessageEventId = 8;
+        [Event(ProcessedMessageEventId, Level = EventLevel.Informational)]
+        public void ProcessedMessage()
+        {
+            if (IsEnabled())
+                WriteEvent(ProcessedMessageEventId);
+        }
+        #endregion
+
+        #region Private Methods
+        private const int ActorMessageEventId = 2;
+        [Event(ActorMessageEventId, Level = EventLevel.Informational, Message = "{11}")]
+        private void ActorMessage(string actorType,
+                                  string actorId,
+                                  string applicationTypeName,
+                                  string applicationName,
+                                  string serviceTypeName,
+                                  string serviceName,
+                                  Guid partitionId,
+                                  long replicaOrInstanceId,
+                                  string nodeName,
+                                  string source,
+                                  string method,
+                                  string message)
         {
             WriteEvent(
-                2,
+                ActorMessageEventId,
                 actorType,
                 actorId,
                 applicationTypeName,
@@ -111,24 +153,29 @@ namespace Microsoft.AzureCat.Samples.Framework
                 message);
         }
 
-        [Event(3, Level = EventLevel.Error, Message = "Actor host initialization failed: {0}")]
+        private const int ActorHostInitializationFailedEventId = 3;
+        [Event(ActorHostInitializationFailedEventId, Level = EventLevel.Error, Message = "Actor host initialization failed: {0}")]
         private void ActorHostInitializationFailed(string exception, string source, string method)
         {
-            WriteEvent(3, exception, source, method);
+            WriteEvent(ActorHostInitializationFailedEventId, exception, source, method);
         }
 
-        [Event(4, Level = EventLevel.Error, Message = "An error occurred: {0}")]
+        private const int ErrorEventId = 4;
+        [Event(ErrorEventId, Level = EventLevel.Error, Message = "{0}")]
         private void Error(string exception)
         {
-            WriteEvent(4, exception);
+            WriteEvent(ErrorEventId, exception);
         }
+        #endregion
 
+        #region Private Static Methods
         private static string GetClassFromFilePath(string sourceFilePath)
         {
             if (string.IsNullOrWhiteSpace(sourceFilePath))
                 return null;
             var file = new FileInfo(sourceFilePath);
             return Path.GetFileNameWithoutExtension(file.Name);
-        }
+        } 
+        #endregion
     }
 }

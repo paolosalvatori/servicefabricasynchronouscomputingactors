@@ -178,7 +178,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
         #endregion
 
-        #region Test Methods
+        #region Private Test Methods
 
         private static void TestSequentialProcessingTaskViaActorProxy()
         {
@@ -189,7 +189,12 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
                 // Creates actor proxy
                 var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
-                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
+                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] actor created.");
+
+                // Subscribes to worker actor events
+                var eventHandler = new WorkerActorEventHandler();
+                proxy.SubscribeAsync<IWorkerActorEvents>(eventHandler).GetAwaiter().GetResult();
+                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Subscribed to the events raised by the [{workerId}] actor.");
 
                 // Enqueues N messages. Note: the sequential message processing task emulates K steps of H seconds each to process each message.
                 // However, since it runs on a separate task not awaited by the actor ProcessMessageAsync method,
@@ -200,14 +205,12 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 foreach (var message in messageList)
                 {
                     proxy.StartSequentialProcessingAsync(message).Wait();
-                    Console.WriteLine(
-                        $" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
+                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
                 }
 
                 while (proxy.IsSequentialProcessingRunningAsync().Result)
                 {
-                    Console.WriteLine(
-                        $" - [{DateTime.Now.ToLocalTime()}] Waiting for the sequential message processing task completion...");
+                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Waiting for the sequential message processing task completion...");
                     Task.Delay(TimeSpan.FromSeconds(1)).Wait();
                 }
                 Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Sequential message processing task completed.");
@@ -215,7 +218,13 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 // Retrieves statistics
                 var statistics = proxy.GetProcessingStatisticsAsync().Result;
                 if (statistics == null)
+                {
                     return;
+                }
+
+                // Unsubscribes from worker actor events
+                proxy.UnsubscribeAsync<IWorkerActorEvents>(eventHandler).GetAwaiter().GetResult();
+                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Unsubscribed from the events raised by the [{workerId}] actor.");
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -235,7 +244,12 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
                 // Creates actor proxy
                 var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
-                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
+                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] actor created.");
+
+                // Subscribes to worker actor events
+                var eventHandler = new WorkerActorEventHandler();
+                proxy.SubscribeAsync<IWorkerActorEvents>(eventHandler).GetAwaiter().GetResult();
+                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Subscribed to the events raised by the [{workerId}] actor.");
 
                 // Creates N messages
                 var messageList = CreateMessageList();
@@ -247,12 +261,10 @@ namespace Microsoft.AzureCat.Samples.TestClient
                     {
                         while (await proxy.IsParallelProcessingRunningAsync(messageId))
                         {
-                            Console.WriteLine(
-                                $" - [{DateTime.Now.ToLocalTime()}] Waiting for [{messageId}] parallel processing task completion...");
+                            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Waiting for [{messageId}] parallel processing task completion...");
                             await Task.Delay(TimeSpan.FromSeconds(1));
                         }
-                        Console.WriteLine(
-                            $" - [{DateTime.Now.ToLocalTime()}] [{messageId}] Parallel message processing task completed.");
+                        Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] [{messageId}] Parallel message processing task completed.");
                     }
                     catch (Exception ex)
                     {
@@ -264,10 +276,11 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 foreach (var message in messageList)
                 {
                     if (!proxy.StartParallelProcessingAsync(message).Result)
+                    {
                         continue;
+                    }
                     taskList.Add(waitHandler(message.MessageId));
-                    Console.WriteLine(
-                        $" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
+                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message [{JsonSerializerHelper.Serialize(message)}] sent.");
                 }
 
                 // Wait for message processing completion
@@ -278,7 +291,13 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 // Retrieves statistics
                 var statistics = proxy.GetProcessingStatisticsAsync().Result;
                 if (statistics == null)
+                {
                     return;
+                }
+
+                // Unsubscribes from worker actor events
+                proxy.UnsubscribeAsync<IWorkerActorEvents>(eventHandler).GetAwaiter().GetResult();
+                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Unsubscribed from the events raised by the [{workerId}] actor.");
 
                 // Prints statistics
                 PrintStatistics(statistics);
@@ -504,7 +523,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
                 // Creates actor proxy
                 var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
-                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
+                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] actor created.");
 
                 // Retrieves statistics
                 var statistics = proxy.GetProcessingStatisticsAsync().Result;
@@ -576,7 +595,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
                 // Creates actor proxy
                 var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
-                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
+                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] actor created.");
 
                 // Enqueues 1 message with 10 steps. Note: the sequential message processing task emulates K steps of H seconds each to process each message.
                 // However, since it runs on a separate task not awaited by the actor ProcessMessageAsync method,
@@ -636,7 +655,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
                 // Creates actor proxy
                 var proxy = ActorProxy.Create<IWorkerActor>(new ActorId(workerId), workerActorServiceUri);
-                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] created.");
+                Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] ActorProxy for the [{workerId}] actor created.");
 
                 // Enqueues 1 message with 10 steps. Note: the sequential message processing task emulates K steps of H seconds each to process each message.
                 // However, since it runs on a separate task not awaited by the actor ProcessMessageAsync method,
@@ -941,6 +960,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
         }
 
         #endregion
+
     }
 
     internal class Test
@@ -953,6 +973,16 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
         public Action Action { get; set; }
 
+        #endregion
+    }
+
+    internal class WorkerActorEventHandler : IWorkerActorEvents
+    {
+        #region IWorkerActorEvents
+        public void MessageProcessingCompleted(string messageId, long returnValue)
+        {
+            Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] Message complete: Message=[{messageId}] Value=[{returnValue}].");
+        }
         #endregion
     }
 }

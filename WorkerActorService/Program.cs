@@ -46,7 +46,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 // For more information, see http://aka.ms/servicefabricactorsplatform
 
                 ActorRuntime.RegisterActorAsync<WorkerActor>(
-                    (context, actorType) => new ActorService(context,
+                    (context, actorType) => new WorkerActorService(context,
                         actorType,
                         (s, i) => new WorkerActor(s, i),
                         null,

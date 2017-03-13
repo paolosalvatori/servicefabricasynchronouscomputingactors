@@ -10,6 +10,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.AzureCat.Samples.Framework;
 using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace Microsoft.AzureCat.Samples.GatewayService
