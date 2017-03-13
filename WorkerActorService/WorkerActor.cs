@@ -209,6 +209,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 var queueActorProxy = ActorProxy.Create<ICircularQueueActor>(new ActorId(Id.ToString()), queueActorServiceUri);
                 await queueActorProxy.EnqueueAsync(message);
 
+                // Traces metric
+                ActorEventSource.Current.ReceivedMessage();
+
                 // Logs event
                 ActorEventSource.Current.Message($"Sequential processing of MessageId=[{message.MessageId}] successfully enqueued.");
 
@@ -242,9 +245,6 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     null,
                     TimeSpan.FromMilliseconds(10),
                     TimeSpan.FromMilliseconds(-1));
-
-                // Traces metric
-                ActorEventSource.Current.ReceivedMessage();
 
                 return true;
             }
