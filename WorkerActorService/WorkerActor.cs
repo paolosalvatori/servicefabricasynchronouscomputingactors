@@ -168,7 +168,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
                 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.OnActivateAsync",
+                ActorEventSource.Current.RequestComplete("OnActivateAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -261,7 +261,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.StartSequentialProcessingAsync",
+                ActorEventSource.Current.RequestComplete("StartSequentialProcessingAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -343,7 +343,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.StartParallelProcessingAsync",
+                ActorEventSource.Current.RequestComplete("StartParallelProcessingAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -405,7 +405,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.StopSequentialProcessingAsync",
+                ActorEventSource.Current.RequestComplete("StopSequentialProcessingAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -474,7 +474,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.StopParallelProcessingAsync",
+                ActorEventSource.Current.RequestComplete("StopParallelProcessingAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -503,6 +503,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
             {
                 // Starts stopwatch 
                 stopwatch.Start();
+
+                // Traces metric
+                ActorEventSource.Current.ProcessedMessage();
 
                 // Logs event
                 ActorEventSource.Current.Message($"Returning sequential processing of MessageId=[{messageId}] ReturnValue=[{returnValue}]...");
@@ -573,9 +576,6 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 ActorEventSource.Current.Message(ok ? $"Sequential processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] successfully returned."
                                                     : $"Sequential processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] failed to store result.");
 
-                // Traces metric
-                ActorEventSource.Current.ProcessedMessage();
-
                 return true;
             }
             catch (Exception ex)
@@ -591,7 +591,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.ReturnSequentialProcessingAsync",
+                ActorEventSource.Current.RequestComplete("ReturnSequentialProcessingAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -621,6 +621,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 // Starts stopwatch 
                 stopwatch.Start();
 
+                // Traces metric
+                ActorEventSource.Current.ProcessedMessage();
+
                 ActorEventSource.Current.Message($"Returning parallel processing of MessageId=[{messageId}] ReturnValue=[{returnValue}]...");
 
                 // Raises event
@@ -630,7 +633,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 // Retrieves the CancellationTokenSource from the actor state 
                 var result = await StateManager.TryGetStateAsync<CancellationTokenSource>(messageId);
                 if (!result.HasValue)
+                {
                     return false;
+                }
                 // Cancels the message processing task by invoking the CancellationTokenSource.Cancel method
                 result.Value.Cancel();
 
@@ -703,9 +708,6 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 ActorEventSource.Current.Message(ok ? $"Parallel processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] successfully returned."
                                                     : $"Parallel processing of MessageId=[{messageId}] ReturnValue=[{returnValue}] failed to store result.");
 
-                // Traces metric
-                ActorEventSource.Current.ProcessedMessage();
-
                 return true;
             }
             catch (Exception ex)
@@ -721,7 +723,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.ReturnParallelProcessingAsync",
+                ActorEventSource.Current.RequestComplete("ReturnParallelProcessingAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -764,7 +766,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.IsSequentialProcessingRunningAsync",
+                ActorEventSource.Current.RequestComplete("IsSequentialProcessingRunningAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -813,7 +815,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.IsParallelProcessingRunningAsync",
+                ActorEventSource.Current.RequestComplete("IsParallelProcessingRunningAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -866,7 +868,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.CloseSequentialProcessingAsync",
+                ActorEventSource.Current.RequestComplete("CloseSequentialProcessingAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");
@@ -958,7 +960,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerActor.CloseSequentialProcessingAsync",
+                ActorEventSource.Current.RequestComplete("CloseSequentialProcessingAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");

@@ -25,11 +25,27 @@
   "filters": [
     {
       "type": "drop",
-      "include": "Level == Verbose || ProviderName == System.Threading.Tasks.TplEventSource || (ProviderName == Microsoft-ServiceFabric-Services && EventName == ManifestData)"
+      "include": "Level == Verbose"
     },
     {
       "type": "drop",
-      "include": "(ProviderName == Microsoft-ServiceFabric-Services && EventName == ManifestData) || (ProviderName == LongRunningActors-Framework-Actor && EventName == ManifestData)"
+      "include": "ProviderName == System.Threading.Tasks.TplEventSource"
+    },
+    {
+      "type": "drop",
+      "include": "ProviderName == Microsoft-ServiceFabric-Services && EventName == ManifestData"
+    },
+    {
+      "type": "drop",
+      "include": "ProviderName == Microsoft-ServiceFabric-Actors && EventName == ManifestData"
+    },
+    {
+      "type": "drop",
+      "include": "ProviderName == LongRunningActors-Framework-Service && EventName == ManifestData"
+    },
+    {
+      "type": "drop",
+      "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == ManifestData"
     }
   ],
   "outputs": [
@@ -45,8 +61,46 @@
       ]
     },
     {
+      "type": "ElasticSearch",
+      "indexNamePrefix": "LongRunningActors-",
+      "serviceUri": "http://localhost:9200",
+      "filters": [
+        {
+          "type": "metadata",
+          "metadata": "request",
+          "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == RequestComplete",
+          "requestNameProperty": "requestName",
+          "isSuccessProperty": "isSuccess",
+          "durationProperty": "duration",
+          "durationUnit": "milliseconds",
+          "responseCodeProperty": "response"
+        },
+        {
+          "type": "metadata",
+          "metadata": "metric",
+          "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == ReceivedMessage",
+          "metricName": "ReceivedMessages",
+          "metricValue": "1.0"
+        },
+        {
+          "type": "metadata",
+          "metadata": "metric",
+          "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == StoppedMessage",
+          "metricName": "StoppedMessages",
+          "metricValue": "1.0"
+        },
+        {
+          "type": "metadata",
+          "metadata": "metric",
+          "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == ProcessedMessage",
+          "metricName": "ProcessedMessages",
+          "metricValue": "1.0"
+        }
+      ]
+    },
+    {
       "type": "ApplicationInsights",
-      "instrumentationKey": "<ApplicationInsightsInstrumentationKey>",
+      "instrumentationKey": "<ApplicationInsights instrumentation Key>",
       "filters": [
         {
           "type": "metadata",
