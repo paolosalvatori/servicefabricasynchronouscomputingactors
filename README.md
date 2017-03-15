@@ -184,9 +184,11 @@ The **EventCollectorService** is a stateless service that uses the https://githu
 In particular, the service is configured to write traces, requests and metrics to **Application Insights** and **Elasticsearch**. The project contains also the definition of the Kibana dashboard that can be used to analyze and visualize data.
 
 **Elasticsearch**
+
 ![ClientApplication](https://raw.githubusercontent.com/paolosalvatori/servicefabricasynchronouscomputingactors/master/Images/Elasticsearch.png)
 
 **Application Insights**
+
 ![ClientApplication](https://raw.githubusercontent.com/paolosalvatori/servicefabricasynchronouscomputingactors/master/Images/ApplicationInsights.png)
 
 
