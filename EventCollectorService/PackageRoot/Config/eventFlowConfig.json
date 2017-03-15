@@ -110,7 +110,7 @@
     },
     {
       "type": "ApplicationInsights",
-      "instrumentationKey": "<Application Insights Instrumentation Ley>",
+      "instrumentationKey": "<Application Insights instrumentation Key>",
       "filters": [
         {
           "type": "metadata",

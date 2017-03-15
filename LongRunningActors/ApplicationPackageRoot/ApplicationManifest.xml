@@ -33,6 +33,9 @@
         </Settings>
       </ConfigOverride>
     </ConfigOverrides>
+    <Policies>
+      <RunAsPolicy CodePackageRef="Code" UserRef="SetupLocalSystem" EntryPointType="Setup" />
+    </Policies>
   </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="WorkerActorServicePkg" ServiceManifestVersion="1.0.0" />
@@ -97,4 +100,9 @@
       </StatelessService>
     </Service>
   </DefaultServices>
+  <Principals>
+    <Users>
+      <User Name="SetupLocalSystem" AccountType="LocalSystem" />
+    </Users>
+  </Principals>
 </ApplicationManifest>

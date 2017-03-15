@@ -21,9 +21,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GatewayService", "GatewaySe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Images", "Images", "{B6708700-B029-40DE-B69D-8BB8322F6F55}"
 	ProjectSection(SolutionItems) = preProject
+		Images\ApplicationInsights.png = Images\ApplicationInsights.png
 		Images\Architecture.png = Images\Architecture.png
 		Images\Client.png = Images\Client.png
 		Images\concurrency.png = Images\concurrency.png
+		Images\Elasticsearch.png = Images\Elasticsearch.png
 		Images\Parallel.png = Images\Parallel.png
 		Images\Sequential.png = Images\Sequential.png
 	EndProjectSection
