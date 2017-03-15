@@ -77,6 +77,16 @@
         },
         {
           "type": "metadata",
+          "metadata": "request",
+          "include": "ProviderName == LongRunningActors-Framework-Service && EventName == RequestComplete",
+          "requestNameProperty": "requestName",
+          "isSuccessProperty": "isSuccess",
+          "durationProperty": "duration",
+          "durationUnit": "milliseconds",
+          "responseCodeProperty": "response"
+        },
+        {
+          "type": "metadata",
           "metadata": "metric",
           "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == ReceivedMessage",
           "metricName": "ReceivedMessages",
@@ -100,12 +110,22 @@
     },
     {
       "type": "ApplicationInsights",
-      "instrumentationKey": "<ApplicationInsights instrumentation Key>",
+      "instrumentationKey": "<Application Insights Instrumentation Ley>",
       "filters": [
         {
           "type": "metadata",
           "metadata": "request",
           "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == RequestComplete",
+          "requestNameProperty": "requestName",
+          "isSuccessProperty": "isSuccess",
+          "durationProperty": "duration",
+          "durationUnit": "milliseconds",
+          "responseCodeProperty": "response"
+        },
+        {
+          "type": "metadata",
+          "metadata": "request",
+          "include": "ProviderName == LongRunningActors-Framework-Service && EventName == RequestComplete",
           "requestNameProperty": "requestName",
           "isSuccessProperty": "isSuccess",
           "durationProperty": "duration",
@@ -138,10 +158,10 @@
   ],
   "schemaVersion": "2016-08-11",
   "settings": {
-    "pipelineBufferSize": "1000",
-    "maxEventBatchSize": "100",
+    "pipelineBufferSize": "10000",
+    "maxEventBatchSize": "1000",
     "maxBatchDelayMsec": "500",
-    "maxConcurrency": "8",
+    "maxConcurrency": "10",
     "pipelineCompletionTimeoutMsec": "30000"
   },
   "extensions": []

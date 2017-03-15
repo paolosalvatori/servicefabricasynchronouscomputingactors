@@ -116,6 +116,7 @@
   <ItemGroup>
     <Compile Include="App_Start\BrowserJsonFormatter.cs" />
     <Compile Include="Controllers\GatewayController.cs" />
+    <Compile Include="EventSourceFilter.cs" />
     <Compile Include="IOwinAppBuilder.cs" />
     <Compile Include="OwinCommunicationListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

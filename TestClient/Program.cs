@@ -839,8 +839,14 @@ namespace Microsoft.AzureCat.Samples.TestClient
             if (exception != null)
             {
                 foreach (var e in exception.InnerExceptions)
-                    if (sourceFilePath != null)
+                {
+                    if (e != null && 
+                        !string.IsNullOrWhiteSpace(sourceFilePath) &&
+                        !string.IsNullOrWhiteSpace(memberName))
+                    {
                         InternalPrintException(e, sourceFilePath, memberName, sourceLineNumber);
+                    }
+                }
                 return;
             }
             Console.ForegroundColor = ConsoleColor.Green;
@@ -853,8 +859,11 @@ namespace Microsoft.AzureCat.Samples.TestClient
             string fileName = null;
             if (File.Exists(sourceFilePath))
             {
-                var file = new FileInfo(sourceFilePath);
-                fileName = file.Name;
+                if (sourceFilePath != null)
+                {
+                    var file = new FileInfo(sourceFilePath);
+                    fileName = file.Name;
+                }
             }
             Console.Write(string.IsNullOrWhiteSpace(fileName) ? "Unknown" : fileName);
             Console.ForegroundColor = ConsoleColor.Green;
@@ -871,6 +880,12 @@ namespace Microsoft.AzureCat.Samples.TestClient
             Console.Write(": ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(!string.IsNullOrWhiteSpace(ex.Message) ? ex.Message : "An error occurred.");
+            if (ex.InnerException != null &&
+                !string.IsNullOrWhiteSpace(sourceFilePath) &&
+                !string.IsNullOrWhiteSpace(memberName))
+            {
+                InternalPrintException(ex.InnerException, sourceFilePath, memberName, sourceLineNumber);
+            }
         }
 
         private static List<Message> CreateMessageList(int messages = -1, int stepCount = -1)

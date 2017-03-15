@@ -120,7 +120,6 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                     string.IsNullOrWhiteSpace(appRoot)
                         ? string.Empty
                         : appRoot.TrimEnd('/') + '/');
-
                 serverHandle = WebApp.Start(listeningAddress, appBuilder => startup.Configuration(appBuilder));
                 var publishAddress = listeningAddress.Replace("+", FabricRuntime.GetNodeContext().IPAddressOrFQDN);
 

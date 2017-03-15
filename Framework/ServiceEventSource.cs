@@ -214,6 +214,18 @@ namespace Microsoft.AzureCat.Samples.Framework
         {
             WriteEvent(ErrorEventId, exception);
         }
+
+        private const int RequestEventId = 9;
+        [Event(RequestEventId, Level = EventLevel.Informational)]
+        public void RequestComplete(string requestName, bool isSuccess, long duration, string response)
+        {
+            if (IsEnabled())
+                WriteEvent(RequestEventId,
+                           requestName,
+                           isSuccess,
+                           duration,
+                           response);
+        }
         #endregion
 
         #region Private Static Methods

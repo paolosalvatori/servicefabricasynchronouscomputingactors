@@ -6,7 +6,7 @@
       "title": "Long Running Actors",
       "hits": 0,
       "description": "",
-      "panelsJSON": "[{\"id\":\"Long-Running-Actors-Average-Times-by-Request-Name\",\"type\":\"visualization\",\"panelIndex\":1,\"size_x\":5,\"size_y\":4,\"col\":1,\"row\":1},{\"id\":\"Long-Running-Actors-Pie-Chart\",\"type\":\"visualization\",\"panelIndex\":2,\"size_x\":5,\"size_y\":3,\"col\":1,\"row\":5},{\"id\":\"Long-Running-Actors-Top-10-Calls-by-Duration\",\"type\":\"visualization\",\"panelIndex\":3,\"size_x\":7,\"size_y\":5,\"col\":6,\"row\":3},{\"id\":\"Long-Running-Actors-Total-Duration-per-Request-Name\",\"type\":\"visualization\",\"panelIndex\":4,\"size_x\":7,\"size_y\":2,\"col\":6,\"row\":1}]",
+      "panelsJSON": "[{\"id\":\"Long-Running-Actors-Average-Times-by-Request-Name\",\"type\":\"visualization\",\"panelIndex\":1,\"size_x\":5,\"size_y\":4,\"col\":1,\"row\":1},{\"id\":\"Long-Running-Actors-Pie-Chart\",\"type\":\"visualization\",\"panelIndex\":2,\"size_x\":5,\"size_y\":3,\"col\":1,\"row\":5},{\"id\":\"Long-Running-Actors-Total-Duration-per-Request-Name\",\"type\":\"visualization\",\"panelIndex\":4,\"size_x\":7,\"size_y\":3,\"col\":6,\"row\":1},{\"id\":\"Long-Running-Actors-Received-and-Processed-Messages\",\"type\":\"visualization\",\"panelIndex\":5,\"size_x\":7,\"size_y\":4,\"col\":6,\"row\":4}]",
       "optionsJSON": "{\"darkTheme\":false}",
       "uiStateJSON": "{}",
       "version": 1,
@@ -34,6 +34,26 @@
       "version": 1,
       "kibanaSavedObjectMeta": {
         "searchSourceJSON": "{\"index\":\"longrunningactors-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"_exists_:payload.RequestName\"}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+      }
+    }
+  },
+  {
+    "_id": "Long-Running-Actors-Received-and-Processed-Messages",
+    "_type": "search",
+    "_source": {
+      "title": "Long Running Actors Received and Processed Messages",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "payload.EventName"
+      ],
+      "sort": [
+        "timestamp",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"longrunningactors-*\",\"query\":{\"query_string\":{\"query\":\"payload.EventName:ReceivedMessage OR payload.EventName:ProcessedMessage\",\"analyze_wildcard\":true}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
       }
     }
   },
@@ -91,6 +111,21 @@
       "version": 1,
       "kibanaSavedObjectMeta": {
         "searchSourceJSON": "{\"index\":\"longrunningactors-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "Long-Running-Actors-Received-and-Processed-Messages",
+    "_type": "visualization",
+    "_source": {
+      "title": "Long Running Actors Received and Processed Messages",
+      "visState": "{\"title\":\"New Visualization\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Count\"}},{\"id\":\"2\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Timestamp\"}},{\"id\":\"3\",\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"payload.EventName\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Event\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "Long-Running-Actors-Received-and-Processed-Messages",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
       }
     }
   }

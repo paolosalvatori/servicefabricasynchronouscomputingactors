@@ -34,6 +34,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             httpConfiguration.MapHttpAttributeRoutes();
             httpConfiguration.Routes.MapHttpRoute("DefaultApi", "api/{controller}/{id}",
                 new {id = RouteParameter.Optional});
+            httpConfiguration.Filters.Add(new EventSourceFilter());
             httpConfiguration.Formatters.Add(new BrowserJsonFormatter());
             app.UseWebApi(httpConfiguration);
         }
