@@ -298,8 +298,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 var result = await StateManager.TryGetStateAsync<CancellationTokenSource>(message.MessageId);
                 if (result.HasValue)
                 {
-                    ActorEventSource.Current.Message(
-                        $"WorkerActor=[{Id}] is already processing MessageId=[{message.MessageId}].");
+                    ActorEventSource.Current.Message($"WorkerActor=[{Id}] is already processing MessageId=[{message.MessageId}].");
                     return true;
                 }
 
@@ -307,17 +306,16 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 var cancellationTokenSource = new CancellationTokenSource();
 
                 // Adds the CancellationTokenSource to the actor state using the messageId as name
-                await
-                    StateManager.TryAddStateAsync(message.MessageId, cancellationTokenSource,
-                        cancellationTokenSource.Token);
+                await StateManager.TryAddStateAsync(message.MessageId, cancellationTokenSource,cancellationTokenSource.Token);
 
                 // Updates internal statistics
                 var longResult = await StateManager.TryGetStateAsync<long>(ReceivedState, cancellationTokenSource.Token);
                 if (longResult.HasValue)
+                {
                     await StateManager.SetStateAsync(ReceivedState, longResult.Value + 1, cancellationTokenSource.Token);
+                }
 
-                var actorProxy = ActorProxy.Create<IProcessorActor>(new ActorId(message.MessageId),
-                    processorActorServiceUri);
+                var actorProxy = ActorProxy.Create<IProcessorActor>(new ActorId(message.MessageId), processorActorServiceUri);
 
                 // Starts the message processing
                 await actorProxy.ProcessParallelMessagesAsync(Id.ToString(), message, cancellationTokenSource.Token);
@@ -523,10 +521,14 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     await StateManager.SetStateAsync(CompleteState, complete);
                     longResult = await StateManager.TryGetStateAsync<long>(MinValueState);
                     if (longResult.HasValue && (returnValue < longResult.Value))
+                    {
                         await StateManager.SetStateAsync(MinValueState, returnValue);
+                    }
                     longResult = await StateManager.TryGetStateAsync<long>(MaxValueState);
                     if (longResult.HasValue && (returnValue > longResult.Value))
+                    {
                         await StateManager.SetStateAsync(MaxValueState, returnValue);
+                    }
                     longResult = await StateManager.TryGetStateAsync<long>(TotValueState);
                     if (longResult.HasValue)
                     {
@@ -649,10 +651,14 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     var complete = longResult.Value + 1;
                     await StateManager.SetStateAsync(CompleteState, complete);
                     if (longResult.HasValue && (returnValue < longResult.Value))
+                    {
                         await StateManager.SetStateAsync(MinValueState, returnValue);
+                    }
                     longResult = await StateManager.TryGetStateAsync<long>(MaxValueState);
                     if (longResult.HasValue && (returnValue > longResult.Value))
+                    {
                         await StateManager.SetStateAsync(MaxValueState, returnValue);
+                    }
                     longResult = await StateManager.TryGetStateAsync<long>(TotValueState);
                     if (longResult.HasValue)
                     {

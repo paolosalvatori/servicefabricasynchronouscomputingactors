@@ -135,8 +135,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
         /// <param name="message">The message to process</param>
         /// <param name="cancellationToken">The cancellation token to interrupt message processing.</param>
         /// <returns>The object at the beginning of the circular queue.</returns>
-        protected virtual async Task InternalProcessParallelMessageAsync(string workerId, Message message,
-            CancellationToken cancellationToken)
+        protected virtual async Task InternalProcessParallelMessageAsync(string workerId, Message message, CancellationToken cancellationToken)
         {
             try
             {
@@ -197,8 +196,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 // NOTE!!!! This section should be replaced by some real computation
                 for (var i = 0; i < steps; i++)
                 {
-                    ActorEventSource.Current.Message(
-                        $"MessageId=[{message.MessageId}] Body=[{message.Body}] ProcessStep=[{i + 1}]");
+                    ActorEventSource.Current.Message($"MessageId=[{message.MessageId}] Body=[{message.Body}] ProcessStep=[{i + 1}]");
                     try
                     {
                         await Task.Delay(delay, cancellationToken);
@@ -208,11 +206,12 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     }
 
                     if (!cancellationToken.IsCancellationRequested)
+                    {
                         continue;
+                    }
                     // NOTE: If message processing has been cancelled, 
                     // the method returns immediately without any result
-                    ActorEventSource.Current.Message(
-                        $"MessageId=[{message.MessageId}] elaboration has been canceled and parallel message processing stopped.");
+                    ActorEventSource.Current.Message($"MessageId=[{message.MessageId}] elaboration has been canceled and parallel message processing stopped.");
                     return;
                 }
                 ActorEventSource.Current.Message($"MessageId=[{message.MessageId}] has been successfully processed.");
@@ -230,8 +229,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                         // Stops the current processing task: it removes the corresponding state from the worker actor
                         var ok = await workerActorProxy.ReturnParallelProcessingAsync(message.MessageId, returnValue);
                         if (ok)
-                            ActorEventSource.Current.Message(
-                                $"Parallel processing of MessageId=[{message.MessageId}] successfully stopped.");
+                        {
+                            ActorEventSource.Current.Message($"Parallel processing of MessageId=[{message.MessageId}] successfully stopped.");
+                        }
                         return;
                     }
                     catch (FabricTransientException ex)
@@ -241,7 +241,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     catch (AggregateException ex)
                     {
                         foreach (var e in ex.InnerExceptions)
+                        {
                             ActorEventSource.Current.Message(e.Message);
+                        }
                     }
                     catch (Exception ex)
                     {

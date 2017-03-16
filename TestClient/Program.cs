@@ -163,6 +163,18 @@ namespace Microsoft.AzureCat.Samples.TestClient
                 Name = "Stop Parallel Test Via Actor Proxy",
                 Description = "Stops a parallel message processing task using a cancellation token.",
                 Action = StopParallelProcessingTaskViaActorProxy
+            },
+            new Test
+            {
+                Name = "Enumerate Actors Via Proxy",
+                Description = "Enumerates actors.",
+                Action = EnumerateActorsViaActorProxy
+            },
+            new Test
+            {
+                Name = "Delete Actors Via Proxy",
+                Description = "Deletes actors.",
+                Action = DeleteActorsViaActorProxy
             }
         };
 
@@ -774,6 +786,74 @@ namespace Microsoft.AzureCat.Samples.TestClient
             }
         }
 
+        public static void DeleteActorsViaActorProxy()
+        {
+            try
+            {
+                var fabricClient = new FabricClient();
+                // Creates Uri list
+                var uriList = new List<Uri>
+                {
+                    workerActorServiceUri,
+                    queueActorServiceUri,
+                    processorActorServiceUri
+                };
+
+                foreach (var uri in uriList)
+                {
+                    var partitionList = fabricClient.QueryManager.GetPartitionListAsync(uri).Result;
+
+                    Console.WriteLine($" - [{DateTime.Now.ToLocalTime()}] [{uri}]:");
+                    var total = 0;
+
+                    foreach (var partition in partitionList)
+                    {
+                        var partitionInformation = partition.PartitionInformation as Int64RangePartitionInformation;
+                        if (partitionInformation == null)
+                            continue;
+                        var partitionKey = partitionInformation.LowKey;
+
+                        // Creates CancellationTokenSource
+                        var cancellationTokenSource = new CancellationTokenSource();
+
+                        // Creates ContinuationToken
+                        ContinuationToken continuationToken = null;
+
+                        // Creates ActorServiceProxy for WorkerActorService
+                        var actorServiceProxy = ActorServiceProxy.Create(uri, partitionKey);
+                        var actorCount = 0;
+
+                        var actorInformationList = new List<ActorInformation>();
+                        do
+                        {
+                            var queryResult = actorServiceProxy.GetActorsAsync(continuationToken, cancellationTokenSource.Token).Result;
+                            if (queryResult.Items.Any())
+                            {
+                                actorInformationList.AddRange(queryResult.Items);
+                                actorCount += queryResult.Items.Count();
+                            }
+                            continuationToken = queryResult.ContinuationToken;
+                        } while (continuationToken != null);
+
+                        // Prints results
+                        Console.WriteLine($"                          > Partition [{partitionInformation.Id}] contains [{actorCount}] actors.");
+                        foreach (var actorInformation in actorInformationList)
+                        {
+                            actorServiceProxy.DeleteActorAsync(actorInformation.ActorId, cancellationTokenSource.Token).Wait(cancellationTokenSource.Token);
+                            Console.WriteLine($"                            > ActorId [{actorInformation.ActorId}] deleted");
+                        }
+                        total += actorCount;
+                    }
+
+                    // Prints results
+                    Console.WriteLine($"                          > Total: [{total}] actors deleted");
+                }
+            }
+            catch (Exception ex)
+            {
+                PrintException(ex);
+            }
+        }
         #endregion
 
         #region Private Static Methods
@@ -782,7 +862,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
         {
             // Create a line
 
-            var optionCount = TestList.Count + 1;
+            var optionCount = TestList.Count;
 
             Console.WriteLine("Select an option:");
             Console.WriteLine(Line);
@@ -790,7 +870,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
             for (var i = 0; i < TestList.Count; i++)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write("[{0}] ", i + 1);
+                Console.Write("[{0}] ", (char)('a' + i));
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.Write(TestList[i].Name);
                 Console.ForegroundColor = ConsoleColor.White;
@@ -799,7 +879,7 @@ namespace Microsoft.AzureCat.Samples.TestClient
 
             // Add exit option
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("[{0}] ", optionCount);
+            Console.Write("[{0}] ", (char)('a' + optionCount));
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write("Exit");
             Console.ForegroundColor = ConsoleColor.White;
@@ -807,11 +887,13 @@ namespace Microsoft.AzureCat.Samples.TestClient
             Console.WriteLine(Line);
 
             // Select an option
-            Console.WriteLine($"Press a key between [1] and [{optionCount}]: ");
-            var key = 'a';
-            while ((key < '1') || (key > '1' + optionCount))
+            Console.WriteLine($"Press a key between [a] and [{(char)('a' + optionCount)}]: ");
+            var key = 'z';
+            while ((key < 'a') || (key > 'a' + optionCount))
+            {
                 key = Console.ReadKey(true).KeyChar;
-            return key - '1' + 1;
+            }
+            return key - 'a' + 1;
         }
 
         private static void PrintException(

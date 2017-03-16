@@ -30,10 +30,11 @@ This sample also demonstrates how to:
 - How to create a custom collection using a stateful actor class that inherits from the [Actor](https://msdn.microsoft.com/en-us/library/microsoft.servicefabric.actors.statefulactor.aspx "Actor") class and manually handles the internal state using its [StateManager](https://msdn.microsoft.com/en-us/library/microsoft.servicefabric.actors.iactorstatemanager.aspx "StateManager") property.
 - How to run multiple actor services within the same process.
 - How to register, unregister and use Reminders
-- How to use Actor Events
+- How to delete an actor
+- How to use [actor events](https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-reliable-actors-events)
 - How to use https://github.com/Azure/diagnostics-eventflow to log ETW Events
 - How to use Application Insights or Elasticsearch + Kibana to analyze and visualize traces and metrics
-- How to use a SetupEntryPoint (in the EventCollectorService) to run a PowerShell script in privileged mode
+- How to use a [SetupEntryPoint](https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-application-model) to run a PowerShell script in privileged mode. For more information, see the service manifest of the EventCollectorService
 
 For more information on the turn-based model for accessing actor methods, see the following resources:
 
