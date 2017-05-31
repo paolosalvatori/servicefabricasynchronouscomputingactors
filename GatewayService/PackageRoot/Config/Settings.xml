@@ -7,5 +7,6 @@
     <Parameter Name="ServiceRelativePath" Value="worker" />
     <Parameter Name="MaxRetryCount" Value="3" />
     <Parameter Name="BackoffDelay" Value="1000" />
+    <Parameter Name="MultiRegion" Value="true" />
   </Section>
 </Settings>
