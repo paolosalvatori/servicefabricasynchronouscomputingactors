@@ -10,9 +10,9 @@
     <Parameter Name="WorkerActorService_PartitionCount" Value="1" />
     <Parameter Name="WorkerActorService_QueueLength" Value="5" />
     <Parameter Name="QueueActorService_PartitionCount" Value="1" />
-    <Parameter Name="ProcessorActorService_PartitionCount" Value="1" />
     <Parameter Name="QueueActorService_TargetReplicaSetSize" Value="3" />
     <Parameter Name="QueueActorService_MinReplicaSetSize" Value="3" />
+    <Parameter Name="ProcessorActorService_PartitionCount" Value="1" />
     <Parameter Name="ProcessorActorService_TargetReplicaSetSize" Value="3" />
     <Parameter Name="ProcessorActorService_MinReplicaSetSize" Value="3" />
     <Parameter Name="WorkerActorService_TargetReplicaSetSize" Value="3" />
