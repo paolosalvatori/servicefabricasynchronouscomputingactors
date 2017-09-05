@@ -4,9 +4,6 @@
 // ------------------------------------------------------------
 
 #region Using Directives
-
-#endregion
-
 using System;
 using System.Diagnostics.Tracing;
 using System.Fabric;
@@ -14,6 +11,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Services.Runtime;
+#endregion
 
 namespace Microsoft.AzureCat.Samples.Framework
 {
@@ -205,7 +203,9 @@ namespace Microsoft.AzureCat.Samples.Framework
         public void Error(Exception e, [CallerFilePath] string source = "", [CallerMemberName] string method = "")
         {
             if (IsEnabled())
+            {
                 Error($"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {e}");
+            }
         }
 
         private const int ErrorEventId = 8;
@@ -225,6 +225,19 @@ namespace Microsoft.AzureCat.Samples.Framework
                            isSuccess,
                            duration,
                            response);
+        }
+
+        private const int DependencyEventId = 10;
+        [Event(DependencyEventId, Level = EventLevel.Informational)]
+        public void Dependency(string target, bool isSuccess, long duration, string response, string type)
+        {
+            if (IsEnabled())
+                WriteEvent(DependencyEventId,
+                           target,
+                           isSuccess,
+                           duration,
+                           response,
+                           type);
         }
         #endregion
 

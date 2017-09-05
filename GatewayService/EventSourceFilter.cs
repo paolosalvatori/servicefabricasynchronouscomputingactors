@@ -57,7 +57,7 @@ namespace Microsoft.AzureCat.Samples.GatewayService
             ServiceEventSource.Current.RequestComplete(GetRequestName(actionExecutedContext.Request.RequestUri),
                 actionExecutedContext.Response.IsSuccessStatusCode,
                 stopwatch.ElapsedMilliseconds,
-                actionExecutedContext.Response.Content.ReadAsStringAsync().Result);
+                $"{actionExecutedContext.Response.StatusCode}");
         }
 
         #endregion

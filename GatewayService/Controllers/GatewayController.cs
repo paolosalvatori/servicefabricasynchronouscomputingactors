@@ -4,18 +4,17 @@
 // ------------------------------------------------------------
 
 #region Using Directices
-
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Diagnostics;
 using Microsoft.AzureCat.Samples.Entities;
 using Microsoft.AzureCat.Samples.Framework;
 using Microsoft.AzureCat.Samples.WorkerActorService.Interfaces;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
+#endregion
 
 namespace Microsoft.AzureCat.Samples.GatewayService
 {
@@ -84,20 +83,46 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                     return false;
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message(
-                    $"Calling WorkerActor[{payload.WorkerId}].StartSequentialProcessingAsync on MessageId=[{payload.Message.MessageId}]...");
-                return await proxy.StartSequentialProcessingAsync(payload.Message);
+                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].StartSequentialProcessingAsync on MessageId=[{payload.Message.MessageId}]...");
+
+                var isSuccess = true;
+                var callwatch = new Stopwatch();
+
+                try
+                {
+                    callwatch.Start();
+                    return await proxy.StartSequentialProcessingAsync(payload.Message);
+                }
+                catch (Exception)
+                {
+                    // Sets success flag to false
+                    isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    callwatch.Stop();
+                    ServiceEventSource.Current.Dependency("WorkerActor",
+                                                          isSuccess,
+                                                          callwatch.ElapsedMilliseconds,
+                                                          isSuccess ? "Succeded" : "Failed",
+                                                          "Actor");
+                }
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
+                {
                     return false;
+                }
                 foreach (var exception in ex.InnerExceptions)
-                    ServiceEventSource.Current.Message(exception.Message);
+                {
+                    ServiceEventSource.Current.Error(exception);
+                }
             }
             catch (Exception ex)
             {
-                ServiceEventSource.Current.Message(ex.Message);
+                ServiceEventSource.Current.Error(ex);
             }
             return false;
         }
@@ -125,20 +150,46 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                     return false;
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message(
-                    $"Calling WorkerActor[{payload.WorkerId}].StartParallelProcessingAsync on MessageId=[{payload.Message.MessageId}]...");
-                return await proxy.StartParallelProcessingAsync(payload.Message);
+                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].StartParallelProcessingAsync on MessageId=[{payload.Message.MessageId}]...");
+
+                var isSuccess = true;
+                var callwatch = new Stopwatch();
+
+                try
+                {
+                    callwatch.Start();
+                    return await proxy.StartParallelProcessingAsync(payload.Message);
+                }
+                catch (Exception)
+                {
+                    // Sets success flag to false
+                    isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    callwatch.Stop();
+                    ServiceEventSource.Current.Dependency("WorkerActor",
+                                                          isSuccess,
+                                                          callwatch.ElapsedMilliseconds,
+                                                          isSuccess ? "Succeded" : "Failed",
+                                                          "Actor");
+                }
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
+                {
                     return false;
+                }
                 foreach (var exception in ex.InnerExceptions)
-                    ServiceEventSource.Current.Message(exception.Message);
+                {
+                    ServiceEventSource.Current.Error(exception);
+                }
             }
             catch (Exception ex)
             {
-                ServiceEventSource.Current.Message(ex.Message);
+                ServiceEventSource.Current.Error(ex);
             }
             return false;
         }
@@ -164,20 +215,46 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                     return false;
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message(
-                    $"Calling WorkerActor[{payload.WorkerId}].StopSequentialProcessingAsync...");
-                return await proxy.StopSequentialProcessingAsync();
+                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].StopSequentialProcessingAsync...");
+
+                var isSuccess = true;
+                var callwatch = new Stopwatch();
+
+                try
+                {
+                    callwatch.Start();
+                    return await proxy.StopSequentialProcessingAsync();
+                }
+                catch (Exception)
+                {
+                    // Sets success flag to false
+                    isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    callwatch.Stop();
+                    ServiceEventSource.Current.Dependency("WorkerActor",
+                                                          isSuccess,
+                                                          callwatch.ElapsedMilliseconds,
+                                                          isSuccess ? "Succeded" : "Failed",
+                                                          "Actor");
+                }
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
+                {
                     return false;
+                }
                 foreach (var exception in ex.InnerExceptions)
-                    ServiceEventSource.Current.Message(exception.Message);
+                {
+                    ServiceEventSource.Current.Error(exception);
+                }
             }
             catch (Exception ex)
             {
-                ServiceEventSource.Current.Message(ex.Message);
+                ServiceEventSource.Current.Error(ex);
             }
             return false;
         }
@@ -204,20 +281,46 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                     return false;
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message(
-                    $"Calling WorkerActor[{payload.WorkerId}].StopParallelProcessingAsync on MessageId=[{payload.Message.MessageId}]...");
-                return await proxy.StopParallelProcessingAsync(payload.Message.MessageId);
+                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].StopParallelProcessingAsync on MessageId=[{payload.Message.MessageId}]...");
+
+                var isSuccess = true;
+                var callwatch = new Stopwatch();
+
+                try
+                {
+                    callwatch.Start();
+                    return await proxy.StopParallelProcessingAsync(payload.Message.MessageId);
+                }
+                catch (Exception)
+                {
+                    // Sets success flag to false
+                    isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    callwatch.Stop();
+                    ServiceEventSource.Current.Dependency("WorkerActor",
+                                                          isSuccess,
+                                                          callwatch.ElapsedMilliseconds,
+                                                          isSuccess ? "Succeded" : "Failed",
+                                                          "Actor");
+                }
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
+                {
                     return false;
+                }
                 foreach (var exception in ex.InnerExceptions)
-                    ServiceEventSource.Current.Message(exception.Message);
+                {
+                    ServiceEventSource.Current.Error(exception);
+                }
             }
             catch (Exception ex)
             {
-                ServiceEventSource.Current.Message(ex.Message);
+                ServiceEventSource.Current.Error(ex);
             }
             return false;
         }
@@ -243,20 +346,46 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                     return false;
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message(
-                    $"Calling WorkerActor[{payload.WorkerId}].IsSequentialProcessingRunningAsync...");
-                return await proxy.IsSequentialProcessingRunningAsync();
+                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].IsSequentialProcessingRunningAsync...");
+
+                var isSuccess = true;
+                var callwatch = new Stopwatch();
+
+                try
+                {
+                    callwatch.Start();
+                    return await proxy.IsSequentialProcessingRunningAsync();
+                }
+                catch (Exception)
+                {
+                    // Sets success flag to false
+                    isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    callwatch.Stop();
+                    ServiceEventSource.Current.Dependency("WorkerActor",
+                                                          isSuccess,
+                                                          callwatch.ElapsedMilliseconds,
+                                                          isSuccess ? "Succeded" : "Failed",
+                                                          "Actor");
+                }
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
+                {
                     return false;
+                }
                 foreach (var exception in ex.InnerExceptions)
-                    ServiceEventSource.Current.Message(exception.Message);
+                {
+                    ServiceEventSource.Current.Error(exception);
+                }
             }
             catch (Exception ex)
             {
-                ServiceEventSource.Current.Message(ex.Message);
+                ServiceEventSource.Current.Error(ex);
             }
             return false;
         }
@@ -283,20 +412,46 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                     return false;
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message(
-                    $"Calling WorkerActor[{payload.WorkerId}].IsParallelProcessingRunningAsync on MessageId=[{payload.Message.MessageId}]...");
-                return await proxy.IsParallelProcessingRunningAsync(payload.Message.MessageId);
+                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].IsParallelProcessingRunningAsync on MessageId=[{payload.Message.MessageId}]...");
+
+                var isSuccess = true;
+                var callwatch = new Stopwatch();
+
+                try
+                {
+                    callwatch.Start();
+                    return await proxy.IsParallelProcessingRunningAsync(payload.Message.MessageId);
+                }
+                catch (Exception)
+                {
+                    // Sets success flag to false
+                    isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    callwatch.Stop();
+                    ServiceEventSource.Current.Dependency("WorkerActor",
+                                                          isSuccess,
+                                                          callwatch.ElapsedMilliseconds,
+                                                          isSuccess ? "Succeded" : "Failed",
+                                                          "Actor");
+                }
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
+                {
                     return false;
+                }
                 foreach (var exception in ex.InnerExceptions)
-                    ServiceEventSource.Current.Message(exception.Message);
+                {
+                    ServiceEventSource.Current.Error(exception);
+                }
             }
             catch (Exception ex)
             {
-                ServiceEventSource.Current.Message(ex.Message);
+                ServiceEventSource.Current.Error(ex);
             }
             return false;
         }
@@ -322,20 +477,46 @@ namespace Microsoft.AzureCat.Samples.GatewayService
                     return null;
 
                 // Invokes actor using proxy
-                ServiceEventSource.Current.Message(
-                    $"Calling WorkerActor[{payload.WorkerId}].GetProcessingStatisticsAsync...");
-                return await proxy.GetProcessingStatisticsAsync();
+                ServiceEventSource.Current.Message($"Calling WorkerActor[{payload.WorkerId}].GetProcessingStatisticsAsync...");
+
+                var isSuccess = true;
+                var callwatch = new Stopwatch();
+
+                try
+                {
+                    callwatch.Start();
+                    return await proxy.GetProcessingStatisticsAsync();
+                }
+                catch (Exception)
+                {
+                    // Sets success flag to false
+                    isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    callwatch.Stop();
+                    ServiceEventSource.Current.Dependency("WorkerActor",
+                                                          isSuccess,
+                                                          callwatch.ElapsedMilliseconds,
+                                                          isSuccess ? "Succeded" : "Failed",
+                                                          "Actor");
+                }
             }
             catch (AggregateException ex)
             {
                 if (!(ex.InnerExceptions?.Count > 0))
+                {
                     return null;
+                }
                 foreach (var exception in ex.InnerExceptions)
-                    ServiceEventSource.Current.Message(exception.Message);
+                {
+                    ServiceEventSource.Current.Error(exception);
+                }
             }
             catch (Exception ex)
             {
-                ServiceEventSource.Current.Message(ex.Message);
+                ServiceEventSource.Current.Error(ex);
             }
             return null;
         }

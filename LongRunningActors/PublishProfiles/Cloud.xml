@@ -19,5 +19,5 @@
   <!--<ClusterConnectionParameters ConnectionEndpoint="Please specify a connection endpoint." />-->
   <ClusterConnectionParameters />
 
-  <ApplicationParameterFile Path="..\ApplicationParameters\Local.5Node.xml" />
+  <ApplicationParameterFile Path="..\ApplicationParameters\CloudNoPlacementConstraints.xml" />
 </PublishProfile>

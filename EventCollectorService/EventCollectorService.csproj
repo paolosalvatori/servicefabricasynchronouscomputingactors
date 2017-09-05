@@ -43,19 +43,26 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Elasticsearch.Net, Version=5.0.0.0, Culture=neutral, PublicKeyToken=96c599bbe3e70f5d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Elasticsearch.Net.5.4.0\lib\net45\Elasticsearch.Net.dll</HintPath>
+      <HintPath>..\packages\Elasticsearch.Net.5.5.0\lib\net45\Elasticsearch.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.ApplicationInsights, Version=2.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.ApplicationInsights.2.3.0\lib\net45\Microsoft.ApplicationInsights.dll</HintPath>
+    <Reference Include="Microsoft.ApplicationInsights, Version=2.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationInsights.2.4.0\lib\net45\Microsoft.ApplicationInsights.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Diagnostics.EventFlow.Core, Version=1.1.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Core.1.1.5\lib\net451\Microsoft.Diagnostics.EventFlow.Core.dll</HintPath>
+    <Reference Include="Microsoft.Azure.Amqp, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Azure.Amqp.2.0.4\lib\net45\Microsoft.Azure.Amqp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Azure.EventHubs, Version=1.0.1.0, Culture=neutral, PublicKeyToken=7e34167dcc6d6d8c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Azure.EventHubs.1.0.1\lib\net451\Microsoft.Azure.EventHubs.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Diagnostics.EventFlow.Core, Version=1.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Core.1.1.6\lib\net451\Microsoft.Diagnostics.EventFlow.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Diagnostics.EventFlow.EtwUtilities, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.EtwUtilities.1.1.0\lib\net451\Microsoft.Diagnostics.EventFlow.EtwUtilities.dll</HintPath>
+    <Reference Include="Microsoft.Diagnostics.EventFlow.EtwUtilities, Version=1.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.EtwUtilities.1.1.1\lib\net451\Microsoft.Diagnostics.EventFlow.EtwUtilities.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Diagnostics.EventFlow.Inputs.Etw, Version=1.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -66,24 +73,23 @@
       <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Inputs.Trace.1.1.0\lib\net451\Microsoft.Diagnostics.EventFlow.Inputs.Trace.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Diagnostics.EventFlow.Outputs.ApplicationInsights, Version=1.1.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Outputs.ApplicationInsights.1.1.5\lib\net451\Microsoft.Diagnostics.EventFlow.Outputs.ApplicationInsights.dll</HintPath>
+    <Reference Include="Microsoft.Diagnostics.EventFlow.Outputs.ApplicationInsights, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Outputs.ApplicationInsights.1.2.0\lib\net451\Microsoft.Diagnostics.EventFlow.Outputs.ApplicationInsights.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Diagnostics.EventFlow.Outputs.ElasticSearch, Version=2.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Outputs.ElasticSearch.2.1.1\lib\net451\Microsoft.Diagnostics.EventFlow.Outputs.ElasticSearch.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Diagnostics.EventFlow.Outputs.EventHub, Version=1.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Outputs.EventHub.1.1.1\lib\net451\Microsoft.Diagnostics.EventFlow.Outputs.EventHub.dll</HintPath>
+    <Reference Include="Microsoft.Diagnostics.EventFlow.Outputs.EventHub, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Outputs.EventHub.1.2.0\lib\net451\Microsoft.Diagnostics.EventFlow.Outputs.EventHub.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.EventFlow.Outputs.Oms, Version=1.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Outputs.Oms.1.1.1\lib\net451\Microsoft.Diagnostics.EventFlow.Outputs.Oms.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Diagnostics.EventFlow.Outputs.Oms, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.Outputs.Oms.1.1.0\lib\net451\Microsoft.Diagnostics.EventFlow.Outputs.Oms.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Diagnostics.EventFlow.ServiceFabric, Version=1.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.ServiceFabric.1.1.3\lib\net451\Microsoft.Diagnostics.EventFlow.ServiceFabric.dll</HintPath>
+    <Reference Include="Microsoft.Diagnostics.EventFlow.ServiceFabric, Version=1.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=AMD64">
+      <HintPath>..\packages\Microsoft.Diagnostics.EventFlow.ServiceFabric.1.1.4\lib\net451\Microsoft.Diagnostics.EventFlow.ServiceFabric.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Diagnostics.Tracing.TraceEvent, Version=1.0.41.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -92,66 +98,59 @@
     </Reference>
     <Reference Include="Microsoft.Extensions.Configuration, Version=1.1.2.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Configuration.1.1.2\lib\netstandard1.1\Microsoft.Extensions.Configuration.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=1.1.2.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Configuration.Abstractions.1.1.2\lib\netstandard1.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Configuration.Binder, Version=1.1.2.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Configuration.Binder.1.1.2\lib\netstandard1.1\Microsoft.Extensions.Configuration.Binder.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Configuration.FileExtensions, Version=1.1.2.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Configuration.FileExtensions.1.1.2\lib\net451\Microsoft.Extensions.Configuration.FileExtensions.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Configuration.Json, Version=1.1.2.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Configuration.Json.1.1.2\lib\net451\Microsoft.Extensions.Configuration.Json.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=1.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.FileProviders.Abstractions.1.1.1\lib\netstandard1.0\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.FileProviders.Physical, Version=1.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.FileProviders.Physical.1.1.1\lib\net451\Microsoft.Extensions.FileProviders.Physical.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.FileSystemGlobbing, Version=1.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.FileSystemGlobbing.1.1.1\lib\net45\Microsoft.Extensions.FileSystemGlobbing.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Primitives, Version=1.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Primitives.1.1.1\lib\netstandard1.0\Microsoft.Extensions.Primitives.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.ServiceBus.4.1.2\lib\net45\Microsoft.ServiceBus.dll</HintPath>
+      <HintPath>..\packages\WindowsAzure.ServiceBus.4.1.3\lib\net45\Microsoft.ServiceBus.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Data, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.ServiceFabric.Data.2.6.220\lib\net45\Microsoft.ServiceFabric.Data.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.ServiceFabric.Data.2.7.198\lib\net45\Microsoft.ServiceFabric.Data.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Data.Interfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.ServiceFabric.Data.2.6.220\lib\net45\Microsoft.ServiceFabric.Data.Interfaces.dll</HintPath>
+      <HintPath>..\packages\Microsoft.ServiceFabric.Data.2.7.198\lib\net45\Microsoft.ServiceFabric.Data.Interfaces.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.ServiceFabric.Diagnostics, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
+      <HintPath>..\packages\Microsoft.ServiceFabric.Diagnostics.Internal.2.7.198\lib\net45\Microsoft.ServiceFabric.Diagnostics.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Internal, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.ServiceFabric.5.6.220\lib\net45\Microsoft.ServiceFabric.Internal.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.ServiceFabric.5.7.198\lib\net45\Microsoft.ServiceFabric.Internal.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Internal.Strings, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.ServiceFabric.5.6.220\lib\net45\Microsoft.ServiceFabric.Internal.Strings.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.ServiceFabric.5.7.198\lib\net45\Microsoft.ServiceFabric.Internal.Strings.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ServiceFabric.Preview, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
+      <HintPath>..\packages\Microsoft.ServiceFabric.5.7.198\lib\net45\Microsoft.ServiceFabric.Preview.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Services, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.ServiceFabric.Services.2.6.220\lib\net45\Microsoft.ServiceFabric.Services.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.ServiceFabric.Services.2.7.198\lib\net45\Microsoft.ServiceFabric.Services.dll</HintPath>
     </Reference>
     <Reference Include="Nest, Version=5.0.0.0, Culture=neutral, PublicKeyToken=96c599bbe3e70f5d, processorArchitecture=MSIL">
-      <HintPath>..\packages\NEST.5.4.0\lib\net45\Nest.dll</HintPath>
+      <HintPath>..\packages\NEST.5.5.0\lib\net45\Nest.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -159,9 +158,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.3.1\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Collections.Immutable, Version=1.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.4.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.Primitives, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -173,28 +171,28 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.2.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.4.1\lib\net45\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
     <Reference Include="System.Fabric, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.ServiceFabric.5.6.220\lib\net45\System.Fabric.dll</HintPath>
+      <HintPath>..\packages\Microsoft.ServiceFabric.5.7.198\lib\net45\System.Fabric.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Fabric.Management.ServiceModel, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.ServiceFabric.5.6.220\lib\net45\System.Fabric.Management.ServiceModel.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.ServiceFabric.5.7.198\lib\net45\System.Fabric.Management.ServiceModel.dll</HintPath>
     </Reference>
     <Reference Include="System.Fabric.Management.ServiceModel.XmlSerializers, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.ServiceFabric.5.6.220\lib\net45\System.Fabric.Management.ServiceModel.XmlSerializers.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.ServiceFabric.5.7.198\lib\net45\System.Fabric.Management.ServiceModel.XmlSerializers.dll</HintPath>
     </Reference>
     <Reference Include="System.Fabric.Strings, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\packages\Microsoft.ServiceFabric.5.6.220\lib\net45\System.Fabric.Strings.dll</HintPath>
+      <HintPath>..\packages\Microsoft.ServiceFabric.5.7.198\lib\net45\System.Fabric.Strings.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.3.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
@@ -202,9 +200,8 @@
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Threading.Tasks.Dataflow, Version=4.6.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Threading.Tasks.Dataflow.4.7.0\lib\portable-net45+win8+wpa81\System.Threading.Tasks.Dataflow.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Threading.Tasks.Dataflow, Version=4.6.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Dataflow.4.8.0\lib\portable-net45+win8+wpa81\System.Threading.Tasks.Dataflow.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
@@ -248,7 +245,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.41\build\Microsoft.Diagnostics.Tracing.TraceEvent.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.41\build\Microsoft.Diagnostics.Tracing.TraceEvent.targets'))" />
+    <Error Condition="!Exists('..\packages\NETStandard.Library.2.0.0\build\NETStandard.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NETStandard.Library.2.0.0\build\NETStandard.Library.targets'))" />
   </Target>
+  <Import Project="..\packages\NETStandard.Library.2.0.0\build\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.0\build\NETStandard.Library.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

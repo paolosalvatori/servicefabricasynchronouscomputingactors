@@ -103,13 +103,36 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     var processorActorProxy = ActorProxy.Create<IProcessorActor>(new ActorId(Id.ToString()),
                         processorActorServiceUri);
 
-                    // Tries to start the processor. If the processor is already running, the task will timeout after 1 second.
-                    var taskList = new List<Task>
+                    var isSuccess = true;
+                    var callwatch = new Stopwatch();
+                    
+                    try
+                    {
+                        callwatch.Start();
+
+                        // Tries to start the processor. If the processor is already running, the task will timeout after 1 second.
+                        var taskList = new List<Task>
                     {
                         processorActorProxy.ProcessSequentialMessagesAsync(cancellationTokenSource.Token),
                         Task.Delay(TimeSpan.FromSeconds(3), cancellationTokenSource.Token)
                     };
-                    await Task.WhenAny(taskList);
+                        await Task.WhenAny(taskList);
+                    }
+                    catch (Exception)
+                    {
+                        // Sets success flag to false
+                        isSuccess = false;
+                        throw;
+                    }
+                    finally
+                    {
+                        callwatch.Stop();
+                        ActorEventSource.Current.Dependency("ProcessorActor",
+                                                            isSuccess,
+                                                            callwatch.ElapsedMilliseconds,
+                                                            isSuccess ? "Succeded" : "Failed",
+                                                            "Actor");
+                    }
                 }
             }
             catch (Exception ex)
@@ -169,9 +192,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 
                 // Logs method duration
                 ActorEventSource.Current.RequestComplete("WorkerOnActivateAsync",
-                                                 isSuccess,
-                                                 stopwatch.ElapsedMilliseconds,
-                                                 isSuccess ? "Succeded" : "Failed");
+                                                         isSuccess,
+                                                         stopwatch.ElapsedMilliseconds,
+                                                         isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -207,7 +230,28 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
 
                 // Enqueues the message
                 var queueActorProxy = ActorProxy.Create<ICircularQueueActor>(new ActorId(Id.ToString()), queueActorServiceUri);
-                await queueActorProxy.EnqueueAsync(message);
+
+                var callwatch = new Stopwatch();
+                try
+                {
+                    callwatch.Start();
+                    await queueActorProxy.EnqueueAsync(message);
+                }
+                catch (Exception)
+                {
+                    // Sets success flag to false
+                    isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    callwatch.Stop();
+                    ActorEventSource.Current.Dependency("CircularQueueActor",
+                                                        isSuccess,
+                                                        callwatch.ElapsedMilliseconds,
+                                                        isSuccess ? "Succeded" : "Failed",
+                                                        "Actor");
+                }
 
                 // Traces metric
                 ActorEventSource.Current.ReceivedMessage();
@@ -262,9 +306,9 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
 
                 // Logs method duration
                 ActorEventSource.Current.RequestComplete("WorkerStartSequentialProcessingAsync",
-                                                 isSuccess,
-                                                 stopwatch.ElapsedMilliseconds,
-                                                 isSuccess ? "Succeded" : "Failed");
+                                                         isSuccess,
+                                                         stopwatch.ElapsedMilliseconds,
+                                                         isSuccess ? "Succeded" : "Failed");
             }
         }
 
@@ -317,9 +361,30 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
 
                 var actorProxy = ActorProxy.Create<IProcessorActor>(new ActorId(message.MessageId), processorActorServiceUri);
 
-                // Starts the message processing
-                await actorProxy.ProcessParallelMessagesAsync(Id.ToString(), message, cancellationTokenSource.Token);
+                var callwatch = new Stopwatch();
+                try
+                {
+                    callwatch.Start();
 
+                    // Starts the message processing
+                    await actorProxy.ProcessParallelMessagesAsync(Id.ToString(), message, cancellationTokenSource.Token);
+                }
+                catch (Exception)
+                {
+                    // Sets success flag to false
+                    isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    callwatch.Stop();
+                    ActorEventSource.Current.Dependency("ProcessorActor",
+                                                        isSuccess,
+                                                        callwatch.ElapsedMilliseconds,
+                                                        isSuccess ? "Succeded" : "Failed",
+                                                        "Actor");
+                }
+                
                 // Logs event
                 ActorEventSource.Current.Message($"Parallel processing of MessageId=[{message.MessageId}] successfully started.");
 
@@ -966,7 +1031,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 stopwatch.Stop();
 
                 // Logs method duration
-                ActorEventSource.Current.RequestComplete("WorkerCloseSequentialProcessingAsync",
+                ActorEventSource.Current.RequestComplete("GetProcessingStatisticsAsync",
                                                  isSuccess,
                                                  stopwatch.ElapsedMilliseconds,
                                                  isSuccess ? "Succeded" : "Failed");

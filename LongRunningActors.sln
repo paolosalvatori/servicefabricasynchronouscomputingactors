@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "LongRunningActors", "LongRunningActors\LongRunningActors.sfproj", "{5814DFEB-B132-4604-B0D4-778BBB79EB18}"
 EndProject
@@ -46,7 +46,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elasticsearch", "Elasticsea
 		Elasticsearch\ElasticsearchObjects.json = Elasticsearch\ElasticsearchObjects.json
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{011A99CA-C6EE-434D-8DFF-BF5937692AAF}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
@@ -121,5 +129,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C150EFD6-BB9B-427F-8751-06714993DBE4}
 	EndGlobalSection
 EndGlobal

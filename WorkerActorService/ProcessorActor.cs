@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using Microsoft.AzureCat.Samples.Entities;
 using Microsoft.AzureCat.Samples.Framework;
 using Microsoft.AzureCat.Samples.Framework.Interfaces;
@@ -225,9 +226,33 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                         // Simulates a return value between 1 and 100
                         var random = new Random();
                         var returnValue = random.Next(1, 101);
+                        var ok = true;
+                        var isSuccess = true;
+                        var callwatch = new Stopwatch();
+                        
+                        try
+                        {
+                            callwatch.Start();
 
-                        // Stops the current processing task: it removes the corresponding state from the worker actor
-                        var ok = await workerActorProxy.ReturnParallelProcessingAsync(message.MessageId, returnValue);
+                            // Stops the current processing task: it removes the corresponding state from the worker actor
+                            ok = await workerActorProxy.ReturnParallelProcessingAsync(message.MessageId, returnValue);
+                        }
+                        catch (Exception)
+                        {
+                            // Sets success flag to false
+                            isSuccess = false;
+                            throw;
+                        }
+                        finally
+                        {
+                            callwatch.Stop();
+                            ActorEventSource.Current.Dependency("WorkerActor",
+                                                                isSuccess,
+                                                                callwatch.ElapsedMilliseconds,
+                                                                isSuccess ? "Succeded" : "Failed",
+                                                                "Actor");
+                        }
+
                         if (ok)
                         {
                             ActorEventSource.Current.Message($"Parallel processing of MessageId=[{message.MessageId}] successfully stopped.");
@@ -289,8 +314,7 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                 Message message;
 
                 // Creates the proxy to call the queue actor
-                var queueActorProxy = ActorProxy.Create<ICircularQueueActor>(new ActorId(Id.ToString()),
-                    queueActorServiceUri);
+                var queueActorProxy = ActorProxy.Create<ICircularQueueActor>(new ActorId(Id.ToString()), queueActorServiceUri);
 
                 // Creates the proxy to call the worker actor
                 var workerActorProxy = ActorProxy.Create<IWorkerActor>(new ActorId(Id.ToString()), workerActorServiceUri);
@@ -387,13 +411,34 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                                 // Simulates a return value between 1 and 100
                                 var random = new Random();
                                 var returnValue = random.Next(1, 101);
+                                var isSuccess = true;
+                                var callwatch = new Stopwatch();
 
-                                // Returns result to worker actor
-                                await workerActorProxy.ReturnSequentialProcessingAsync(message.MessageId, returnValue);
+                                try
+                                {
+                                    callwatch.Start();
+
+                                    // Returns result to worker actor
+                                    await workerActorProxy.ReturnSequentialProcessingAsync(message.MessageId, returnValue);
+                                }
+                                catch (Exception)
+                                {
+                                    // Sets success flag to false
+                                    isSuccess = false;
+                                    throw;
+                                }
+                                finally
+                                {
+                                    callwatch.Stop();
+                                    ActorEventSource.Current.Dependency("WorkerActor",
+                                                                        isSuccess,
+                                                                        callwatch.ElapsedMilliseconds,
+                                                                        isSuccess ? "Succeded" : "Failed",
+                                                                        "Actor");
+                                }
 
                                 //Logs event
-                                ActorEventSource.Current.Message(
-                                    $"Sequential processing of MessageId=[{message.MessageId}] ReturnValue=[{returnValue}] successfully returned.");
+                                ActorEventSource.Current.Message($"Sequential processing of MessageId=[{message.MessageId}] ReturnValue=[{returnValue}] successfully returned.");
                                 break;
                             }
                             catch (FabricTransientException ex)
@@ -422,7 +467,29 @@ namespace Microsoft.AzureCat.Samples.WorkerActorService
                     try
                     {
                         // Sets the sequential processing state to false
-                        await workerActorProxy.CloseSequentialProcessingAsync(false);
+                        var isSuccess = true;
+                        var callwatch = new Stopwatch();
+
+                        try
+                        {
+                            callwatch.Start();
+                            await workerActorProxy.CloseSequentialProcessingAsync(false);
+                        }
+                        catch (Exception)
+                        {
+                            // Sets success flag to false
+                            isSuccess = false;
+                            throw;
+                        }
+                        finally
+                        {
+                            callwatch.Stop();
+                            ActorEventSource.Current.Dependency("WorkerActor",
+                                                                isSuccess,
+                                                                callwatch.ElapsedMilliseconds,
+                                                                isSuccess ? "Succeded" : "Failed",
+                                                                "Actor");
+                        }
                         ActorEventSource.Current.Message("Closed sequential processing.");
                         return;
                     }

@@ -134,6 +134,28 @@
         },
         {
           "type": "metadata",
+          "metadata": "dependency",
+          "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == Dependency",
+          "isSuccessProperty": "isSuccess",
+          "durationProperty": "duration",
+          "durationUnit": "milliseconds",
+          "responseCodeProperty": "response",
+          "targetProperty": "target",
+          "dependencyType": "type"
+        },
+        {
+          "type": "metadata",
+          "metadata": "dependency",
+          "include": "ProviderName == LongRunningActors-Framework-Service && EventName == Dependency",
+          "isSuccessProperty": "isSuccess",
+          "durationProperty": "duration",
+          "durationUnit": "milliseconds",
+          "responseCodeProperty": "response",
+          "targetProperty": "target",
+          "dependencyType": "type"
+        },
+        {
+          "type": "metadata",
           "metadata": "metric",
           "include": "ProviderName == LongRunningActors-Framework-Actor && EventName == ReceivedMessage",
           "metricName": "ReceivedMessages",

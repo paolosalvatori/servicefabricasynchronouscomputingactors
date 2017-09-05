@@ -24,6 +24,7 @@ using System.Diagnostics.Tracing;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Microsoft.ServiceFabric.Actors.Runtime;
+using Newtonsoft.Json;
 
 #endregion
 
@@ -81,7 +82,9 @@ namespace Microsoft.AzureCat.Samples.Framework
         public void Error(Exception e, [CallerFilePath] string source = "", [CallerMemberName] string method = "")
         {
             if (IsEnabled())
+            {
                 Error($"[{GetClassFromFilePath(source) ?? "UNKNOWN"}::{method ?? "UNKNOWN"}] {e}");
+            }
         }
 
         private const int RequestEventId = 5;
@@ -96,7 +99,20 @@ namespace Microsoft.AzureCat.Samples.Framework
                            response);
         }
 
-        private const int ReceivedMessageEventId = 6;
+        private const int DependencyEventId = 6;
+        [Event(DependencyEventId, Level = EventLevel.Informational)]
+        public void Dependency(string target, bool isSuccess, long duration, string response, string type)
+        {
+            if (IsEnabled())
+                WriteEvent(DependencyEventId,
+                           target,
+                           isSuccess,
+                           duration,
+                           response,
+                           type);
+        }
+
+        private const int ReceivedMessageEventId = 7;
         [Event(ReceivedMessageEventId, Level = EventLevel.Informational)]
         public void ReceivedMessage()
         {
@@ -104,7 +120,7 @@ namespace Microsoft.AzureCat.Samples.Framework
                 WriteEvent(ReceivedMessageEventId);
         }
 
-        private const int StoppedMessageEventId = 7;
+        private const int StoppedMessageEventId = 8;
         [Event(StoppedMessageEventId, Level = EventLevel.Informational)]
         public void StoppedMessage()
         {
@@ -112,18 +128,19 @@ namespace Microsoft.AzureCat.Samples.Framework
                 WriteEvent(StoppedMessageEventId);
         }
 
-        private const int ProcessedMessageEventId = 8;
+        private const int ProcessedMessageEventId = 9;
         [Event(ProcessedMessageEventId, Level = EventLevel.Informational)]
         public void ProcessedMessage()
         {
             if (IsEnabled())
                 WriteEvent(ProcessedMessageEventId);
         }
+
         #endregion
 
         #region Private Methods
         private const int ActorMessageEventId = 2;
-        [Event(ActorMessageEventId, Level = EventLevel.Informational, Message = "{11}")]
+        [Event(ActorMessageEventId, Level = EventLevel.Informational, Message = "Message={11}")]
         private void ActorMessage(string actorType,
                                   string actorId,
                                   string applicationTypeName,
